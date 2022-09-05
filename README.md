@@ -1,6 +1,7 @@
 # GENERATION R metadata app 
-Hi, this repository contains a [shiny](http://shiny.rstudio.com/) application that can search and label variables in [**Generation R**](https://generationr.nl/) data. 
+Hi, this repository contains a [shiny](http://shiny.rstudio.com/) application that can search and label variables in [**Generation R**](https://generationr.nl/) data. First of all, thank you so much for helping us constructing the data dictionary! You can read about how to launch and use the application down here. If you have any questions / feedback / bugs to report, please write me ([s.defina@erasmusmc.nl](s.defina@erasmusmc.nl)) :D
 
+## Setting up and launching the app
 The app requires [R](http://cran.r-project.org/) (version >= 4.0.3) and the following packages:
 * [shiny](http://cran.r-project.org/package=shiny) (version >= 1.6.0)
 * [reticulate](https://rstudio.github.io/reticulate/) (version >= 1.26)
