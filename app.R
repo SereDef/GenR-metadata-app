@@ -16,6 +16,11 @@ for (pack in py_pack) {
 source('select.R')
 source_python('label_metadata.py')
 
+logfile <- file.path(getwd(), 'logfile.txt')
+if (!file.exists(logfile)){
+  file.create(logfile)
+}
+
 qsum <- read.csv('data/quest_meta.csv')
 
 ################################################################################
@@ -86,6 +91,8 @@ ui <- fluidPage(titlePanel(h1('Generation R metadata app', # Add title panel
                column(6, numericInput('ton',   label = 'To', value = 10)),
                               br(),br(),
                actionButton('undo', label = 'Undo selection', style='display: block; margin-left: auto; margin-right: auto;'),br(),
+               downloadButton('downloadData', label = 'Download selected', style='display: block; margin-left: 6; margin-right: 2;
+                            color: #0C3690; background-color: #B6CCE7; border-color: #0C3690'),
                actionButton('assign', label = 'Assign', style='display: block; margin-left: auto; margin-right: 2;
                             color: #0C3690; background-color: #B6CCE7; border-color: #0C3690'),
         ) # end third column  
@@ -102,8 +109,10 @@ ui <- fluidPage(titlePanel(h1('Generation R metadata app', # Add title panel
                     span(textOutput('selected', inline=T), style='color:#0C3690'), 
                     'in', 
                     span(textOutput('sel_based_on', inline=T), style='color:#0C3690')),
+                 br(),
                  h5('Numbers:'), textOutput('n_generated'),
                  br(),
+                 # textOutput('call'),
                  a('https://generationr.nl/'), # Hyperlink to generation R website
                  img(src = 'generation-r-logo.png', height = 140, 
                      style='display: block; margin-left: auto; margin-right: 0;') 
@@ -172,9 +181,35 @@ server <- function(input, output) {
                                         constructs = ass_constructs() ) })
     #                                     verbose=True,
     #                                     print_labels=False
-    
     output$n_generated <- renderText({ paste0(list_numbers(start=input$fromn, end=input$ton),', ') })
-  
+    
+    output$downloadData <- downloadHandler(
+      # Create the download file name
+      filename = function() { paste0("selection-", Sys.Date(), ".csv")
+      },
+      content = function(file) { write.csv(getSelection(), file)  # put Data() into the download file
+      }) 
+    
+    observeEvent(input$assign, {
+      log <- paste0('assign(selected = ',input$selection,
+             ', based_on = ', input$based_on,
+             ', case_sensy = ', input$case_sensy,
+             ', sel_type = ', input$sel_type, 
+             ', and_also = (', input$based_on2,', ', input$selection2, ')',
+             ', data_source = ', input$a_data_source,
+             ', timepoint = ', input$a_timepoint,
+             ', reporter = ', input$a_reporter,
+             ', var_label = ', input$a_var_label,
+             ', subject = ', input$a_subject,
+             ', gr_section = ', input$a_gr_section,
+             ', gr_qnumber = ', input$a_gr_qnumber,
+             ', var_comp = ', input$a_var_comp,
+             ', questionnaire = ', input$a_questionnaire,
+             ', questionnaire_ref = ', input$a_questionnaire_ref,
+             ', constructs = ', input$a_constructs,')')
+      cat(log, file=logfile, sep ='\n\n', append=TRUE)
+    })
+    
 }
     
 ################################################################################
@@ -182,4 +217,3 @@ server <- function(input, output) {
 ################################################################################
 
 shinyApp(ui = ui, server = server)
-

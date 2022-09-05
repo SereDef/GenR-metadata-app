@@ -48,7 +48,7 @@ def assign(selected: Union[str, list],  # var_type, n_observed, orig_file, n_tot
            case_sensy=False,
            sel_type='contains',  # 'ends', 'starts', 'is'
            and_also: tuple = None,
-           verbose=True,
+           verbose=False,
            print_labels=False,
            # assignment arguments
            data_source: str = None,
