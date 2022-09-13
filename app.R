@@ -13,7 +13,7 @@ for (pack in py_pack) {
 }
 
 # point to the script the does the search 
-source('select.R')
+# source('select.R')
 source_python('label_metadata.py')
 
 logfile <- file.path(getwd(), 'logfile.txt')
@@ -85,14 +85,13 @@ ui <- fluidPage(titlePanel(h1('Generation R metadata app', # Add title panel
         column(4, h3(' ~~~~~~~~~~~~~~~~~~ '),
                textInput('a_timepoint', label = 'Timepoint', value = NULL),
                textInput('a_gr_section', label = 'Section', value = NULL),
-               textInput('a_gr_qnumber', label = 'Question number(s)', value = ''),
+               textInput('a_gr_qnumber', label = 'Question number(s)', value = NULL),
                p('You can genetate an approximate list and it paste above.'),
                column(6, numericInput('fromn', label = 'From', value = 1)),
                column(6, numericInput('ton',   label = 'To', value = 10)),
                               br(),br(),
                actionButton('undo', label = 'Undo selection', style='display: block; margin-left: auto; margin-right: auto;'),br(),
-               downloadButton('downloadData', label = 'Download selected', style='display: block; margin-left: 6; margin-right: 2;
-                            color: #0C3690; background-color: #B6CCE7; border-color: #0C3690'),
+               downloadButton('download', label = 'Download selected', style='display: block; color: #0C3690; background-color: #B6CCE7; border-color: #0C3690'),br(),
                actionButton('assign', label = 'Assign', style='display: block; margin-left: auto; margin-right: 2;
                             color: #0C3690; background-color: #B6CCE7; border-color: #0C3690'),
         ) # end third column  
@@ -134,23 +133,31 @@ ui <- fluidPage(titlePanel(h1('Generation R metadata app', # Add title panel
 ################################################################################
 
 server <- function(input, output) {
-  
-    # You can access the value of the widget with input$select, e.g
-    output$selected <- renderText({ input$selection })
-    output$sel_based_on <- renderText({ input$based_on })
-    
+    # Display selected table 
     getSelection <- reactive({
-      table = assign(selected = input$selection,
-             based_on = input$based_on,
-             case_sensy = input$case_sensy,
-             sel_type = input$sel_type, 
-             and_also = c(input$based_on2, input$selection2))
+      assign(selected = input$selection,
+                     based_on = input$based_on,
+                     case_sensy = input$case_sensy,
+                     sel_type = input$sel_type, 
+                     and_also = c(input$based_on2, input$selection2))
     })
-  
     output$view <- renderTable({ getSelection() })
     
-    output$n_selected <- renderText({ nrow(getSelection()) })
+    # TODO: FIX DOWNLOAD??
+    # output$download <- downloadHandler(
+    #   # Create the download file name
+    #   filename = function () { paste("GENR-selected-", Sys.Date(), ".csv", sep='') },
+    #   content = function(file) { write.csv(getSelection(), file, row.names = T) },  # put Data() into the download file
+    #   contentType = 'text/csv'
+    #   ) 
     
+    # Overview information 
+    output$selected     <- renderText({ input$selection }) # selection criteria
+    output$sel_based_on <- renderText({ input$based_on })  # "
+    output$n_selected   <- renderText({ nrow(getSelection()) }) # number of rows
+    output$n_generated  <- renderText({ paste0(list_numbers(start=input$fromn, end=input$ton),', ') })
+    
+    # Upon clicking "assign"
     ass_data_source <- eventReactive(input$assign, { unlist(strsplit(input$a_data_source,', ')) })
     ass_var_label <- eventReactive(input$assign, { unlist(strsplit(input$a_var_label,'; ')) })
     ass_timepoint <- eventReactive(input$assign, { unlist(strsplit(input$a_timepoint,', ')) })
@@ -162,8 +169,9 @@ server <- function(input, output) {
     ass_questionnaire <- eventReactive(input$assign, { input$a_questionnaire })
     ass_questionnaire_ref <- eventReactive(input$assign, { input$a_questionnaire_ref })
     ass_constructs <- eventReactive(input$assign, { input$a_constructs })
-  
-    output$view2 <- renderTable({ assign(selected = input$selection,
+    
+    # Display assigned table 
+    output$view2 <- renderTable({ assign(selected = input$selection, # verbose=True,print_labels=False
                                         based_on = input$based_on,
                                         case_sensy = input$case_sensy,
                                         sel_type = input$sel_type, 
@@ -179,35 +187,30 @@ server <- function(input, output) {
                                         questionnaire = ass_questionnaire(),
                                         questionnaire_ref = ass_questionnaire_ref(),
                                         constructs = ass_constructs() ) })
-    #                                     verbose=True,
-    #                                     print_labels=False
-    output$n_generated <- renderText({ paste0(list_numbers(start=input$fromn, end=input$ton),', ') })
-    
-    output$downloadData <- downloadHandler(
-      # Create the download file name
-      filename = function() { paste0("selection-", Sys.Date(), ".csv")
-      },
-      content = function(file) { write.csv(getSelection(), file)  # put Data() into the download file
-      }) 
-    
+                                     
     observeEvent(input$assign, {
+      and_also <- ifelse(input$selection2 != '', 
+                         paste0(', and_also = (', input$based_on2,', ', input$selection2, ')'),'')
+      data_source <- ifelse(input$a_data_source!='',paste0(', data_source = ', input$a_data_source),'')
+      timepoint <- ifelse(input$a_timepoint!='',paste0(', timepoint = ', input$a_timepoint),'')
+      reporter <- ifelse(input$a_reporter!='',paste0(', reporter = ', input$a_reporter),'')
+      var_label <- ifelse(input$a_var_label!='',paste0(', var_label = ', input$a_var_label),'')
+      subject <- ifelse(input$a_subject!='',paste0(', subject = ', input$a_subject),'')
+      gr_section <- ifelse(input$a_gr_section!='',paste0(', gr_section = ', input$a_gr_section),'')
+      gr_qnumber <- ifelse(input$a_gr_qnumber!='',paste0(', gr_qnumber = ', input$a_gr_qnumber),'')
+      var_comp <- ifelse(input$a_var_comp!='',paste0(', var_comp = ', input$a_var_comp),'')
+      questionnaire <- ifelse(input$a_questionnaire!='',paste0(', questionnaire = ',input$a_questionnaire),'')
+      questionnaire_ref <- ifelse(input$a_questionnaire_ref!='',paste0(', questionnaire_ref = ',input$a_questionnaire_ref),'')
+      constructs <- ifelse(input$a_constructs!= '', paste0(', constructs = ', input$a_constructs),'')
+      
       log <- paste0('assign(selected = ',input$selection,
              ', based_on = ', input$based_on,
              ', case_sensy = ', input$case_sensy,
              ', sel_type = ', input$sel_type, 
-             ', and_also = (', input$based_on2,', ', input$selection2, ')',
-             ', data_source = ', input$a_data_source,
-             ', timepoint = ', input$a_timepoint,
-             ', reporter = ', input$a_reporter,
-             ', var_label = ', input$a_var_label,
-             ', subject = ', input$a_subject,
-             ', gr_section = ', input$a_gr_section,
-             ', gr_qnumber = ', input$a_gr_qnumber,
-             ', var_comp = ', input$a_var_comp,
-             ', questionnaire = ', input$a_questionnaire,
-             ', questionnaire_ref = ', input$a_questionnaire_ref,
-             ', constructs = ', input$a_constructs,')')
-      cat(log, file=logfile, sep ='\n\n', append=TRUE)
+             and_also, data_source, timepoint, reporter, var_label, subject,
+             gr_section, gr_qnumber, var_comp, questionnaire, questionnaire_ref,
+             constructs,')','\n# ',nrow(getSelection()))
+      cat(log, file=logfile, sep ='\n\n\n', append=TRUE)
     })
     
 }
