@@ -3,7 +3,7 @@
 # or you want to help shoot me an email at s.defina@erasmusmc.nl
 
 # Load required r packages
-r_pack <- c('shiny', 'reticulate')
+r_pack <- c('shiny', 'reticulate','tcltk')
 invisible(lapply(r_pack, require, character.only = T));
 
 # Load required python packages
@@ -15,13 +15,16 @@ for (pack in py_pack) {
 # point to the script the does the search 
 # source('select.R')
 source_python('label_metadata.py')
+# Load the base dataset 
+qsum <- read.csv('data/quest_meta.csv')
 
-logfile <- file.path(getwd(), 'logfile.txt')
+# Prompt window to select output directory
+dir <- tcltk::tk_choose.dir(caption = 'Where do you want to store the output?')
+# Define and create a log file 
+logfile <- file.path(dir, paste0('logfile-',Sys.Date(),'.txt'))
 if (!file.exists(logfile)){
   file.create(logfile)
 }
-
-qsum <- read.csv('data/quest_meta.csv')
 
 ################################################################################
 # ----------------------- Define UI for dataset viewer app  --------------------
@@ -90,8 +93,8 @@ ui <- fluidPage(titlePanel(h1('Generation R metadata app', # Add title panel
                column(6, numericInput('fromn', label = 'From', value = 1)),
                column(6, numericInput('ton',   label = 'To', value = 10)),
                               br(),br(),
-               actionButton('undo', label = 'Undo selection', style='display: block; margin-left: auto; margin-right: auto;'),br(),
-               downloadButton('download', label = 'Download selected', style='display: block; color: #0C3690; background-color: #B6CCE7; border-color: #0C3690'),br(),
+               # actionButton('undo', label = 'Undo selection', style='display: block; margin-left: auto; margin-right: auto;'),br(),
+               actionButton('download', label = 'Download selected', style='display: block; margin-left: auto; margin-right: 2; color: #0C3690; background-color: #B6CCE7; border-color: #0C3690'),br(),
                actionButton('assign', label = 'Assign', style='display: block; margin-left: auto; margin-right: 2;
                             color: #0C3690; background-color: #B6CCE7; border-color: #0C3690'),
         ) # end third column  
@@ -135,21 +138,33 @@ ui <- fluidPage(titlePanel(h1('Generation R metadata app', # Add title panel
 server <- function(input, output) {
     # Display selected table 
     getSelection <- reactive({
-      assign(selected = input$selection,
-                     based_on = input$based_on,
-                     case_sensy = input$case_sensy,
-                     sel_type = input$sel_type, 
-                     and_also = c(input$based_on2, input$selection2))
+      assign(qsum, selected = input$selection,
+             based_on = input$based_on,
+             case_sensy = input$case_sensy,
+             sel_type = input$sel_type, 
+             and_also = c(input$based_on2, input$selection2), download=FALSE)
     })
     output$view <- renderTable({ getSelection() })
+    
+    observeEvent(input$download, {
+      assign(qsum, selected = input$selection,
+             based_on = input$based_on,
+             case_sensy = input$case_sensy,
+             sel_type = input$sel_type,
+             and_also = c(input$based_on2, input$selection2),
+             download = file.path(dir, paste0("selectd-", Sys.Date(), ".csv"))
+             )
+    })
     
     # TODO: FIX DOWNLOAD??
     # output$download <- downloadHandler(
     #   # Create the download file name
-    #   filename = function () { paste("GENR-selected-", Sys.Date(), ".csv", sep='') },
-    #   content = function(file) { write.csv(getSelection(), file, row.names = T) },  # put Data() into the download file
-    #   contentType = 'text/csv'
-    #   ) 
+    #   filename = paste("GENR-selected-", Sys.Date(), ".csv", sep=''),
+    #   content = function(file) {
+    #     write.csv(as.data.frame(getSelection()), file.path(dir, file), row.names = T)
+    #    }
+    #   # contentType = 'text/csv'
+    # )
     
     # Overview information 
     output$selected     <- renderText({ input$selection }) # selection criteria
@@ -171,7 +186,7 @@ server <- function(input, output) {
     ass_constructs <- eventReactive(input$assign, { input$a_constructs })
     
     # Display assigned table 
-    output$view2 <- renderTable({ assign(selected = input$selection, # verbose=True,print_labels=False
+    output$view2 <- renderTable({ assign(qsum, selected = input$selection, # verbose=True,print_labels=False
                                         based_on = input$based_on,
                                         case_sensy = input$case_sensy,
                                         sel_type = input$sel_type, 
@@ -203,7 +218,7 @@ server <- function(input, output) {
       questionnaire_ref <- ifelse(input$a_questionnaire_ref!='',paste0(', questionnaire_ref = ',input$a_questionnaire_ref),'')
       constructs <- ifelse(input$a_constructs!= '', paste0(', constructs = ', input$a_constructs),'')
       
-      log <- paste0('assign(selected = ',input$selection,
+      log <- paste0('assign(q, selected = ',input$selection,
              ', based_on = ', input$based_on,
              ', case_sensy = ', input$case_sensy,
              ', sel_type = ', input$sel_type, 

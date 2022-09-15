@@ -4,9 +4,6 @@ import string
 from typing import Union
 
 # Define the input file
-loc_input = '/Users/Serena/Desktop/GENR-search-engine/quest_meta.csv'
-
-q = pd.read_csv(loc_input, encoding='mac_roman')
 
 GR_ids = {'GR1001':['12-20 w','mother'], # The health of you and your child
           'GR1002':['15-23 w','mother'], # De voeding van moeder
@@ -43,13 +40,14 @@ GR_ids = {'GR1001':['12-20 w','mother'], # The health of you and your child
 
 
 # Construct the main assignment funtion. It takes only one obligatory argument: selected.
-def assign(selected: Union[str, list],  # var_type, n_observed, orig_file, n_total, n_missing, descriptives
+def assign(q, selected: Union[str, list],  # var_type, n_observed, orig_file, n_total, n_missing, descriptives
            based_on: str = 'orig_file',
            case_sensy=False,
            sel_type='contains',  # 'ends', 'starts', 'is'
            and_also: tuple = None,
            verbose=False,
            print_labels=False,
+           download = None,
            # assignment arguments
            data_source: str = None,
            timepoint: Union[str, list] = None,
@@ -177,6 +175,10 @@ def assign(selected: Union[str, list],  # var_type, n_observed, orig_file, n_tot
         q.loc[q['var_name'] == other_var, 'var_comp'] = sbj
 
     show = q.loc[sel,].set_index('var_name')
+
+    if download:
+        show.to_csv(download)
+            
     return (show)
 
 
@@ -200,7 +202,4 @@ def list_numbers(start, end, lvl1=None, lvl2=None):
             return (numb)
     else:
         return (main)
-
-def add_try(a,b):
-    c = a + b
-    return(c)
+    
