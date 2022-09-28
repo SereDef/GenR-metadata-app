@@ -22,6 +22,8 @@ P.S. This very much still a work in progress, so please feel free to write me wi
 and comments!
 
 ## Useful files 
+Please log your work onto the [worksheet](https://docs.google.com/spreadsheets/d/1jIF1myCpcJbcd4L0KlbwDbyaSKyToHI_1jagUqtIdT4/edit#gid=0)
+
 On the wiki you can find the PDFs of the questionnaires and some references. Inside the "useful files" folder you will also find the following resources
 * **GenR_datataxonomy_v4**: overview of the available data manually compiled by Nathalie for the CD2 project. This is not complete (and is being updated by Yuchan) but contains a lot of useful info about instrument names and measurement timepoints...
 * **Questionnaires Generation R with refs Aug 2020**: the doc listing some of the references and instrument names for all questionnaires. 

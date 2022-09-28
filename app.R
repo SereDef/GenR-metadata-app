@@ -13,10 +13,10 @@ for (pack in py_pack) {
 }
 
 # point to the script the does the search 
-# source('select.R')
 source_python('label_metadata.py')
 # Load the base dataset 
 qsum <- read.csv('data/quest_meta.csv')
+qsum <- qsum[,-1] # get rid of index variable from pandas 
 
 # Prompt window to select output directory
 dir <- tcltk::tk_choose.dir(caption = 'Where do you want to store the output?')

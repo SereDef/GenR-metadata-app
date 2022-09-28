@@ -174,7 +174,7 @@ def assign(q, selected: Union[str, list],  # var_type, n_observed, orig_file, n_
         sbj = 'child' if other_var in ['GENDER', 'FUPFASE2'] else 'mother'
         q.loc[q['var_name'] == other_var, 'var_comp'] = sbj
 
-    show = q.loc[sel,].set_index('var_name')
+    show = q.loc[sel,] # .set_index('var_name')
 
     if download:
         show.to_csv(download)
