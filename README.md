@@ -1,39 +1,59 @@
-# GENERATION R metadata app 
-Hi, this repository contains a [shiny](http://shiny.rstudio.com/) application that can search and label variables in [**Generation R**](https://generationr.nl/) data. First of all, thank you so much for helping us constructing the data dictionary! You can read about how to launch and use the application down here. If you have any questions / feedback / bugs to report, please write me ([s.defina@erasmusmc.nl](s.defina@erasmusmc.nl)) :D
+# GENERATION R ~ metadata app 
+Hi, this is a [shiny](http://shiny.rstudio.com/) application that can search and label variables in [**Generation R**](https://generationr.nl/) data. First of all, thank you so much for helping us constructing the data dictionary! 
+You can read about how to launch and use the application down here. 
+
+P.S. This very much still a work in progress, so if you have any questions / feedback / bugs to report 
+please feel free to write me ([s.defina@erasmusmc.nl](s.defina@erasmusmc.nl)) :D
+
+## Useful files 
+Before you do anything, remember to keep track of the time you spend labeling data, as this will count for your
+general tasks. Then, the first thing to do is to pick a chunk of data from this [list](https://docs.google.com/spreadsheets/d/1jIF1myCpcJbcd4L0KlbwDbyaSKyToHI_1jagUqtIdT4/edit#gid=0). I recommend starting with a file that you have worked with or you know better and don't forget to write your name down next to it, so others will know that you are taking care of that. 
+
+Finding out the (correct!) information about GenR data is not always straightforward unfortunately. 
+One thing you will probably need to have a look at are the PDFs of the questionnaires, which cannot
+be shared publicly, but you can find on the **info wiki**. 
+We also tried to put together some additional resources / overviews that can help you out, so make sure 
+you keep and eye on the [**useful files**](https://github.com/SereDef/GenR-metadata-app/tree/main/useful%20files) 
+folder on this repo, and if you feel lost at any point, don't be afraid to ask me or other colleagues.
+These files include:
+* [**GenR_datataxonomy_v4**](https://github.com/SereDef/GenR-metadata-app/blob/main/useful%20files/GenR_datataxonomy_v4.xlsx): an overview of the available data manually compiled by Nathalie for the CD2 project. This is not complete (and is being updated by Yuchan) but contains a lot of useful info about instrument names, references and measurement timepoints...
+* [**Questionnaires Generation R with refs Aug 2020**](https://github.com/SereDef/GenR-metadata-app/blob/main/useful%20files/Questionnaires%20Generation%20R%20with%20refs%20Aug%202020.doc): a word doc listing (some of) the references and instrument names for all questionnaires up to age 17y. These are not always clearly linked to a specific section or number, so you may need to take a guess by looking at the questions on the PDF / variable labels.
+* [**DataWiki_files**](https://github.com/SereDef/GenR-metadata-app/blob/main/useful%20files/DataWiki_files_120922.xlsx): an excel sheet with the location of each file on the data wiki and the PIs for each file. May be useful for labeling or finding data.
+* more specific files such as: [**GenR_17yr_Measures**](https://github.com/SereDef/GenR-metadata-app/blob/main/useful%20files/GenR_17yr_Measures.xlsx) and [**available_biomarkers_in_full_cohort**](https://github.com/SereDef/GenR-metadata-app/blob/main/useful%20files/available_biomarkers_in_full_cohort_1-11-2018.pdf)
+
+Please keep in mind that all of these resources are not necessarily complete and may contain errors. Please contact me if you spot any of them. 
+I also created a shared [document](https://docs.google.com/spreadsheets/d/1hCDNHtlB_ksVX5toP3CQIDAVbHS9w8Xi3ZPkW79DIns/edit#gid=0) where you can list any issue you may encounter, also for others to be aware of it. 
+
+Ok, let's see if we can get this application started. 
 
 ## Setting up and launching the app
 The app requires [R](http://cran.r-project.org/) (version >= 4.0.3) and the following packages:
 * [shiny](http://cran.r-project.org/package=shiny) (version >= 1.6.0)
 * [reticulate](https://rstudio.github.io/reticulate/) (version >= 1.26)
-These packages can be installed using the following function call:
-```r
-install.packages(c("shiny","reticulate","tcltk"), dependencies = TRUE)
-```
 
-and then the app can be directly invoked using the command:
+To launch the application, open **RStudio** (or any other R IDE), and paste the following
+command in your console (only do this if you need to install the packages i listed above):
+```r
+install.packages(c("shiny","reticulate"), dependencies = TRUE)
+```
+Once you have the right packages, the app can be directly invoked using the command:
 ```r
 shiny::runGitHub("GenR-metadata-app", "SereDef", ref="main", launch.browser = T)
 ```
 This will automatically load these packages and the data overview files that are needed. 
 The argument `launch.browser = T` makes the app open in the default browser. 
-If that is not desired, the argument can simply be removed.
+If you don't like that, simply remove the argument.
 
-P.S. This very much still a work in progress, so please feel free to write me with any suggestions 
-and comments!
+Pretty soon you should see the message `Where do you want to store the output?` 
+appearing in the console. Please type or paste the path to the folder where you would 
+like to store the app output and press enter. This can be any folder as long as you remember where it is :) 
 
-## Useful files 
-Please log your work onto the [worksheet](https://docs.google.com/spreadsheets/d/1jIF1myCpcJbcd4L0KlbwDbyaSKyToHI_1jagUqtIdT4/edit#gid=0)
-
-On the wiki you can find the PDFs of the questionnaires and some references. Inside the "useful files" folder you will also find the following resources
-* **GenR_datataxonomy_v4**: overview of the available data manually compiled by Nathalie for the CD2 project. This is not complete (and is being updated by Yuchan) but contains a lot of useful info about instrument names and measurement timepoints...
-* **Questionnaires Generation R with refs Aug 2020**: the doc listing some of the references and instrument names for all questionnaires. 
-* **DataWiki_files**: excel sheet with the location of each file on the data wiki and the PIs for each file. May be useful for labelling or finding data
-* more spefic files such as: **GenR_17yr_Measures** and **available_biomarkers_in_full_cohort**
-
-Please keep in mind that all of these resources are not necessarily complete and may contain errors. Please contact me if you spot any of them. 
+Once you entered the path you should see a `logfile-DATE.txt` appearing in the folder you chose. 
+This is empty for now but will be filled in as you assign metadata to variables. This is also the
+only file that I need you to return to me after you are done with your data chunk. 
 
 ## Optional: Python tutorial
-Note that if are handy or what to get familiar with pyhton the assignment can also be performed via a tutorial notebook (you will need to have pyhton, jupyter notebook and a few other packages installed). please contact me if you need help setting this up. 
+Note that if are handy or what to get familiar with Pyhton the assignment can also be performed via [this notebook]() (you will need to have pyhton, jupyter notebook and a few other packages installed, see the instructions in the notebook). Please also feel free to contact me if you need help setting this up. 
 
 ## Quick tutorial 
 After you launch the application you should see a **Selection pane** and an **Assignment pane**. 
