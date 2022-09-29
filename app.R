@@ -1,7 +1,6 @@
 # Hi, this is a quick set up for the application interface to assign metadata in GenR
 # This is still very much work in progress so please if you have any suggestions 
 # or you want to help shoot me an email at s.defina@erasmusmc.nl
-dir <- readline('Where do you want to store the output?')
 
 # Load required r packages
 r_pack <- c('shiny', 'reticulate') # 'tcltk'
@@ -19,7 +18,7 @@ source_python('label_metadata.py')
 qsum <- read.csv('data/quest_meta.csv')
 qsum <- qsum[,-1] # get rid of index variable from pandas 
 
-
+dir <- readline('Where do you want to store the output?')
 # Prompt window to select output directory
 # dir <- tcltk::tk_choose.dir(getwd(), caption = 'Where do you want to store the output?')
 # Define and create a log file 
@@ -155,7 +154,7 @@ server <- function(input, output) {
     assign(qsum, selected = input$gr_n,
            based_on = 'data_source', download=FALSE)
   })
-  observeEvent(input$gr_n, {cat('DATASOURCE: ',input$gr_n,'---------------------',
+  observeEvent(input$gr_n, {cat(input$gr_n,'-----------------------------------\n',
                                 file=logfile, append=TRUE)})         
   # Display selected table 
   getSelection <- reactive({
@@ -173,7 +172,7 @@ server <- function(input, output) {
              case_sensy = input$case_sensy,
              sel_type = input$sel_type,
              and_also = c(input$based_on2, input$selection2),
-             download = file.path(dir, paste0("selectd-", Sys.Date(), ".csv"))
+             download = file.path(dir, paste0("selected-", Sys.Date(), ".csv"))
              )
   })
   
@@ -231,8 +230,8 @@ server <- function(input, output) {
       constructs <- ifelse(input$a_constructs!= '', paste0(', constructs = "', input$a_constructs,'"'),'')
       
   log <- paste0('assign(selected = "',input$selection,
-             '", based_on = "', case_sensy_TF,
-             '", case_sensy = ', input$case_sensy,
+             '", based_on = "', input$based_on,
+             '", case_sensy = ', case_sensy_TF,
              ', sel_type = "', input$sel_type, 
              and_also, data_source, timepoint, reporter, var_label, subject,
              gr_section, gr_qnumber, var_comp, questionnaire, questionnaire_ref,
