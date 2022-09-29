@@ -1,9 +1,10 @@
 # Hi, this is a quick set up for the application interface to assign metadata in GenR
 # This is still very much work in progress so please if you have any suggestions 
 # or you want to help shoot me an email at s.defina@erasmusmc.nl
+dir <- readline('Where do you want to store the output?')
 
 # Load required r packages
-r_pack <- c('shiny', 'reticulate','tcltk')
+r_pack <- c('shiny', 'reticulate') # 'tcltk'
 invisible(lapply(r_pack, require, character.only = T));
 
 # Load required python packages
@@ -20,7 +21,7 @@ qsum <- qsum[,-1] # get rid of index variable from pandas
 
 
 # Prompt window to select output directory
-dir <- tcltk::tk_choose.dir(getwd(), caption = 'Where do you want to store the output?')
+# dir <- tcltk::tk_choose.dir(getwd(), caption = 'Where do you want to store the output?')
 # Define and create a log file 
 logfile <- file.path(dir, paste0('logfile-',Sys.Date(),'.txt'))
 if (!file.exists(logfile)){
