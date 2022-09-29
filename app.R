@@ -18,7 +18,7 @@ source_python('label_metadata.py')
 qsum <- read.csv('data/quest_meta.csv')
 qsum <- qsum[,-1] # get rid of index variable from pandas 
 
-dir <- readline('Where do you want to store the output?')
+dir <- readline('Where do you want to store the output? ')
 # Prompt window to select output directory
 # dir <- tcltk::tk_choose.dir(getwd(), caption = 'Where do you want to store the output?')
 # Define and create a log file 
@@ -154,7 +154,7 @@ server <- function(input, output) {
     assign(qsum, selected = input$gr_n,
            based_on = 'data_source', download=FALSE)
   })
-  observeEvent(input$gr_n, {cat(input$gr_n,'-----------------------------------\n',
+  observeEvent(input$gr_n, {cat(input$gr_n,'-----------------------------------\n\n',
                                 file=logfile, append=TRUE)})         
   # Display selected table 
   getSelection <- reactive({
