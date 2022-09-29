@@ -3,11 +3,11 @@ Hi, this is a [shiny](http://shiny.rstudio.com/) application that can search and
 You can read about how to launch and use the application down here. 
 
 P.S. This very much still a work in progress, so if you have any questions / feedback / bugs to report 
-please feel free to write me ([s.defina@erasmusmc.nl](s.defina@erasmusmc.nl)) :D
+please feel free to flag them here or write me ([s.defina@erasmusmc.nl](s.defina@erasmusmc.nl)) :D
 
 ## Useful files 
 Before you do anything, remember to keep track of the time you spend labeling data, as this will count for your
-general tasks. Then, the first thing to do is to pick a chunk of data from this [list](https://docs.google.com/spreadsheets/d/1jIF1myCpcJbcd4L0KlbwDbyaSKyToHI_1jagUqtIdT4/edit#gid=0). I recommend starting with a file that you have worked with or you know better and don't forget to write your name down next to it, so others will know that you are taking care of that. 
+**general tasks**. Now, the first thing you want to do is to pick a chunk of data from this [list](https://docs.google.com/spreadsheets/d/1jIF1myCpcJbcd4L0KlbwDbyaSKyToHI_1jagUqtIdT4/edit#gid=0). I recommend starting with a questionnaire that you have worked with or you know a little bit and don't forget to write your name down next to it, so others will know that you are taking care of it. 
 
 Finding out the (correct!) information about GenR data is not always straightforward unfortunately. 
 One thing you will probably need to have a look at are the PDFs of the questionnaires, which cannot
@@ -16,13 +16,12 @@ We also tried to put together some additional resources / overviews that can hel
 you keep and eye on the [**useful files**](https://github.com/SereDef/GenR-metadata-app/tree/main/useful%20files) 
 folder on this repo, and if you feel lost at any point, don't be afraid to ask me or other colleagues.
 These files include:
-* [**GenR_datataxonomy_v4**](https://github.com/SereDef/GenR-metadata-app/blob/main/useful%20files/GenR_datataxonomy_v4.xlsx): an overview of the available data manually compiled by Nathalie for the CD2 project. This is not complete (and is being updated by Yuchan) but contains a lot of useful info about instrument names, references and measurement timepoints...
-* [**Questionnaires Generation R with refs Aug 2020**](https://github.com/SereDef/GenR-metadata-app/blob/main/useful%20files/Questionnaires%20Generation%20R%20with%20refs%20Aug%202020.doc): a word doc listing (some of) the references and instrument names for all questionnaires up to age 17y. These are not always clearly linked to a specific section or number, so you may need to take a guess by looking at the questions on the PDF / variable labels.
-* [**DataWiki_files**](https://github.com/SereDef/GenR-metadata-app/blob/main/useful%20files/DataWiki_files_120922.xlsx): an excel sheet with the location of each file on the data wiki and the PIs for each file. May be useful for labeling or finding data.
-* more specific files such as: [**GenR_17yr_Measures**](https://github.com/SereDef/GenR-metadata-app/blob/main/useful%20files/GenR_17yr_Measures.xlsx) and [**available_biomarkers_in_full_cohort**](https://github.com/SereDef/GenR-metadata-app/blob/main/useful%20files/available_biomarkers_in_full_cohort_1-11-2018.pdf)
+* [GenR_datataxonomy_v4](https://github.com/SereDef/GenR-metadata-app/blob/main/useful%20files/GenR_datataxonomy_v4.xlsx): an overview of the available data manually compiled by Nathalie for the CD2 project. This is not complete (and is being updated by Yuchan) but contains a lot of useful info about instrument names, references and measurement timepoints...
+* [Questionnaires Generation R with refs Aug 2020](https://github.com/SereDef/GenR-metadata-app/blob/main/useful%20files/Questionnaires%20Generation%20R%20with%20refs%20Aug%202020.doc): a word doc listing (some of) the references and instrument names for all questionnaires up to age 17y. These are not always clearly linked to a specific section or number, so you may need to take a guess by looking at the questions on the PDF / variable labels.
+* [DataWiki_files](https://github.com/SereDef/GenR-metadata-app/blob/main/useful%20files/DataWiki_files_120922.xlsx): an excel sheet with the location of each file on the data wiki and the PIs for each file. May be useful for labeling or finding data.
+* more specific files such as: [GenR_17yr_Measures](https://github.com/SereDef/GenR-metadata-app/blob/main/useful%20files/GenR_17yr_Measures.xlsx) and [available_biomarkers_in_full_cohort](https://github.com/SereDef/GenR-metadata-app/blob/main/useful%20files/available_biomarkers_in_full_cohort_1-11-2018.pdf)
 
-Please keep in mind that all of these resources are not necessarily complete and may contain errors. Please contact me if you spot any of them. 
-I also created a shared [document](https://docs.google.com/spreadsheets/d/1hCDNHtlB_ksVX5toP3CQIDAVbHS9w8Xi3ZPkW79DIns/edit#gid=0) where you can list any issue you may encounter, also for others to be aware of it. 
+Please keep in mind that all of these resources are not necessarily complete and may contain errors. Please contact me if you spot any of them. I also created a shared [document](https://docs.google.com/spreadsheets/d/1hCDNHtlB_ksVX5toP3CQIDAVbHS9w8Xi3ZPkW79DIns/edit#gid=0) where you can list any issues you may encounter, also for others to be aware of it. 
 
 Ok, let's see if we can get this application started. 
 
@@ -32,7 +31,7 @@ The app requires [R](http://cran.r-project.org/) (version >= 4.0.3) and the foll
 * [reticulate](https://rstudio.github.io/reticulate/) (version >= 1.26)
 
 To launch the application, open **RStudio** (or any other R IDE), and paste the following
-command in your console (only do this if you need to install the packages i listed above):
+command in your console (only do this if you need to install the packages I listed above):
 ```r
 install.packages(c("shiny","reticulate"), dependencies = TRUE)
 ```
@@ -48,21 +47,41 @@ Pretty soon you should see the message `Where do you want to store the output?`
 appearing in the console. Please type or paste the path to the folder where you would 
 like to store the app output and press enter. This can be any folder as long as you remember where it is :) 
 
-Once you entered the path you should see a `logfile-DATE.txt` appearing in the folder you chose. 
-This is empty for now but will be filled in as you assign metadata to variables. This is also the
-only file that I need you to return to me after you are done with your data chunk. 
+Once you entered the path, you should see a `logfile-DATE.txt` appearing in the folder you chose. 
+This is empty for now, but will be filled in as you assign metadata to variables. This is also the
+only file that I need you to return to me after you are done with your "data chunk", so don't delete it
+or your work will be lost!
 
 ## Optional: Python tutorial
-Note that if are handy or what to get familiar with Pyhton the assignment can also be performed via [this notebook]() (you will need to have pyhton, jupyter notebook and a few other packages installed, see the instructions in the notebook). Please also feel free to contact me if you need help setting this up. 
+Note that if are handy or what to get familiar with Pyhton, the assignment can also be performed via [this notebook](https://github.com/SereDef/GenR-metadata-app/blob/main/Python%20tutorial/Quesitionnaire_metadata.ipynb) (you will need to have `pyhton`, `jupyter notebook` and a few other packages installed, see the instructions in the notebook). Please also feel free to contact me if you need help setting this up. 
 
-## Quick tutorial 
-After you launch the application you should see a **Selection pane** and an **Assignment pane**. 
+# TUTORIAL 
+Now that the application is running in your browser, you should see two main panes: 
+a [**Selection pane**]() and an [**Assignment pane**](), with a bunch of options you can set up. 
+If you scroll down a wee bit can also notice three tabs: `Selection`, `Check selected` and `Check assigned`. 
+Let's start with how to select data. 
 
-### Selection
+## Selection
+The first entry in the Section pane allows you to choose the *"data source"* you are currently working on. 
+This is the GR-number of the questionnaire you chose from the [worksheet](https://docs.google.com/spreadsheets/d/1jIF1myCpcJbcd4L0KlbwDbyaSKyToHI_1jagUqtIdT4/edit#gid=0). 
+You do not need to select anything here, but It sure helps :) 
 
+If you made a selection, you can immediately see **number of rows** you have selected reported down in the
+`Selection` tab. 
+
+........
+
+Next you see the **main search bar**, with three very useful search settings: 
+* [**Based on**](): controls the column you are searching in. Default is `Variable name` but you can change this to any other column in the data table. 
+* [**search type**](): by default the app returns all the rows that `contain` the string you entered in the search bar, but you may be interested, for example, only in variables that `start with`, `end with`, or are `equal` to some value. 
+* [**case sensitive**](): by default, the search is <ins>not</ins> case sensitive, but you can change that by ticking this box.
+
+Go ahead and try typing in something under [**Search for**]() and play around with the settings. 
+
+> note you can search for multiple strings at the same time if you separate them with a `|` 
 Choose your selection criteria by entering a string (e.g., something) or a list of strings (e.g., something, something else). Separate elements in lists using commas. 
 
-By default, the selection is not case sensitive, but you can change that by ticking the case sensitive box.
+ case sensitive box.
 
 You can base your selection on any column in the metadata dataframe. Default is 'orig_file', which holds the names of the original .sav files. You can change this to any column in the dataset, for example var_name for selecting based on variable names, or var_label if you want to use variable labels. At the moment the function only supports a single value of based_on, but do let me know if you need more flexibility.
 

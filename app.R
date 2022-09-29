@@ -121,10 +121,7 @@ ui <- fluidPage(titlePanel(h1('Generation R metadata app', # Add title panel
         tabPanel('Selection', br(), 
                  h5('You have selected', 
                     span(textOutput('n_selected', inline=T), style='color:#0C3690'), 
-                    'rows, seraching for', 
-                    span(textOutput('selected', inline=T), style='color:#0C3690'), 
-                    'in', 
-                    span(textOutput('sel_based_on', inline=T), style='color:#0C3690')),
+                    'rows.'),
                  br(),
                  h5('Numbers:'), textOutput('n_generated'),
                  br(),
@@ -177,9 +174,7 @@ server <- function(input, output) {
   })
   
   # Overview information 
-  output$selected     <- renderText({ input$selection }) # selection criteria
-  output$sel_based_on <- renderText({ input$based_on })  # "
-  output$n_selected   <- renderText({ nrow(getSelection()) }) # number of rows
+  output$n_selected   <- renderText({ ifelse(is.null(nrow(getSelection())),'0',nrow(getSelection())) }) # number of rows
   output$n_generated  <- renderText({ paste0(list_numbers(start=input$fromn, end=input$ton),', ') })
   
   # Upon clicking "assign"
