@@ -7,7 +7,7 @@ The app requires [R](http://cran.r-project.org/) (version >= 4.0.3) and the foll
 * [reticulate](https://rstudio.github.io/reticulate/) (version >= 1.26)
 These packages can be installed using the following function call:
 ```r
-install.packages(c("shiny","reticulate"), dependencies = TRUE)
+install.packages(c("shiny","reticulate","tcltk"), dependencies = TRUE)
 ```
 
 and then the app can be directly invoked using the command:

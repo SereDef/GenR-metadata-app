@@ -1,4 +1,4 @@
-# Hi, this is a quick set up for the application interface to search in GenR
+# Hi, this is a quick set up for the application interface to assign metadata in GenR
 # This is still very much work in progress so please if you have any suggestions 
 # or you want to help shoot me an email at s.defina@erasmusmc.nl
 
@@ -12,14 +12,15 @@ for (pack in py_pack) {
   if (!pack %in% py_list_packages()$package) { py_install(pack) }
 }
 
-# point to the script the does the search 
+# Point to the backend py script the performs the search/assignment
 source_python('label_metadata.py')
 # Load the base dataset 
 qsum <- read.csv('data/quest_meta.csv')
 qsum <- qsum[,-1] # get rid of index variable from pandas 
 
+
 # Prompt window to select output directory
-dir <- tcltk::tk_choose.dir(caption = 'Where do you want to store the output?')
+dir <- tcltk::tk_choose.dir(getwd(), caption = 'Where do you want to store the output?')
 # Define and create a log file 
 logfile <- file.path(dir, paste0('logfile-',Sys.Date(),'.txt'))
 if (!file.exists(logfile)){
@@ -27,79 +28,92 @@ if (!file.exists(logfile)){
 }
 
 ################################################################################
-# ----------------------- Define UI for dataset viewer app  --------------------
+# ------------------------------- Define UI ------------------------------------
 ################################################################################
 
-# The function fluidPage creates a display that automatically adjusts to the 
-# dimensions of user’s browser window. You lay out the user interface of the app 
-# by placing elements in the fluidPage function.
+# The fluidPage function creates a display that automatically adjusts to the dimensions
+# of user’s browser window.
   
 ui <- fluidPage(titlePanel(h1('Generation R metadata app', # Add title panel
                               style='font-family:verdana; font-weight: bold; font-size:30pt;
-                              color:#0C3690; background-color:#B6CCE7;
-                              padding: 10px 20px 10px 30px;')), 
-  
-  sidebarLayout( # Define a sidebar panel and a main panel layout 
-                 # with input and output definitions respectively 
-                 # note: optional argument position = 'right'to move the sidebar 
-    
-    # Main panel for displaying inputs -----------------------------------------
-    sidebarPanel( 
-      p("Hello, welcome and thank you for your help. Let's try to label some Generation R data."),
-      # Display Input widgets next to labels
-      # tags$head( tags$style(type='text/css', 'label{ display: table-cell; text-align: right; vertical-align: top; } .form-group { display: table-row;}')),
-      tags$head( tags$style('h3 {color:#0C3690;}') ),
+                              color:#0C3690; background-color:#B6CCE7; padding: 10px 20px 10px 30px;')), 
+  # Define a sidebar panel and a main panel layout for input and output
+  sidebarLayout(# note: optional argument position = 'right' to move the sidebar 
+    sidebarPanel(
+      tags$head(tags$style('h3 {color:#0C3690;}')), # Color Selection and Assignment pane titles
       fluidRow(
-        column(4, fluidRow(style = "width:350px", h3('Selection pane'),
-               p('Type (part of) the variable name or label you want to select.'),
+        column(4, 
+               fluidRow(style = "width:350px", h3('Selection pane'),
+               selectInput('gr_n', label = 'Select data source:', 
+                           choices=list('','GR1001'='GR1001','GR1002'='GR1002','GR1003'='GR1003',
+                                        'GR1004'='GR1004','GR1005'='GR1005','interview'='interview',
+                                        'home-interview'='home-interview','GR1018'='GR1018',
+                                        'GR1019'='GR1019','GR1024'='GR1024','GR1025'='GR1025',
+                                        'GR1028'='GR1028','GR1029'='GR1029','GR1032'='GR1032',
+                                        'GR1060'='GR1060','GR1062'='GR1062','GR1064'='GR1064',
+                                        'GR1065'='GR1065','GR1066'='GR1066','GR1067'='GR1067',
+                                        'GR1075'='GR1075','GR1076'='GR1076','GR1078'='GR1078',
+                                        'GR1079'='GR1079','GR1080'='GR1080','GR1081'='GR1081',
+                                        'GR1082'='GR1082','GR1083'='GR1083','GR1084'='GR1084',
+                                        'GR1086'='GR1086','GR1093'='GR1093','GR1094'='GR1094',
+                                        'GR1095'='GR1095','GR1096'='GR1096','GR1097'='GR1097',
+                                        'COVID'='COVID'), selected = NULL), 
+               p('Type (part of) the string you want to select.'),
+               # <ins>Tip</ins>: Use "|" in between words if you want to select multiple strings.'),br(),
                textInput('selection', label='Search for:', value = ''),
                column(12, selectInput('based_on', label = 'Based on:', choices=list('Variable name'='var_name','Variable label'='var_label',
-                                                                         'Timepoint'='timepoint','Questionnaire'='questionnaire',
+                                                                         'Questionnaire'='questionnaire','Section'='gr_section',
+                                                                         'Question number'='gr_qnumber','Timepoint'='timepoint',
                                                                          'Constructs'='constructs','Original file'='orig_file'), 
                             selected = 'var_name')),
                column(8, selectInput('sel_type', label = 'Search type:', 
                                      choices=list('Contains'='contains','Starts with'='starts','Ends with'='ends','Equal to'='is'), 
                                      selected = 'contains')),
                column(3, h1(),checkboxInput('case_sensy', label = 'Case sensitive', value = F))
-               ), # end first fluid row (selection 1)
+               ), # end first fluid row (Selection 1)
                fluidRow(style = "width:350px", p('Include additional selection criteria.'),
                textInput('selection2', label='Also search for:', value = ''),
                selectInput('based_on2', label = 'Based on:', 
                            choices=list('Variable name'='var_name','Variable label'='var_label',
-                                        'Data source'='data_source', 'Timepoint'='timepoint','Questionnaire'='questionnaire',
+                                        'Data source'='data_source','Questionnaire'='questionnaire',
+                                        'Section'='gr_section','Question number'='gr_qnumber','Timepoint'='timepoint',
                                         'Constructs'='constructs','Original file'='orig_file'), 
-                                      selected = 'data_source')
+                                      selected = 'var_name')
                )), # end first column # end second fluidRow (selection 2)
         column(4, fluidRow(style = "width:350px",h3('Assignment pane'),
-               textInput('a_data_source', label = 'Data source', value = NULL),
+               p('Type or paste the string you want to assign.'),
                textInput('a_var_label', label = 'Variable label', value = NULL),
-               column(4, radioButtons('a_subject', label = 'Subject', 
-                                      choices = list('child'='child','mother'='mother','partner'='partner'), selected = character(0)) ),
-               column(4, radioButtons('a_reporter', label = 'Reporter', 
-                                      choices = list('child'='child','mother'='mother','partner'='partner'), selected = character(0)) ),
-               column(4, radioButtons('a_var_comp', label = 'Variable type', 
-                                      choices = list('item'='item', 'score'='score'), selected = character(0)) )
+               p('Please select only one of the following options. Select none if the label is not applicable (set to " ").'),
+               column(4, checkboxGroupInput('a_subject', label = 'Subject', 
+                                      choices = list('child'='child','mother'='mother','partner'='partner','none'=' '), selected = character(0)) ),
+               column(4, checkboxGroupInput('a_reporter', label = 'Reporter', 
+                                      choices = list('child'='child','mother'='mother','partner'='partner','none'=' '), selected = character(0)) ),
+               column(4, checkboxGroupInput('a_var_comp', label = 'Variable type', 
+                                      choices = list('item'='item', 'score'='score','metadata'='meta','none'=' '), selected = character(0)) )
                ),# end first fluid row
                fluidRow(style = "width:350px",
                textInput('a_questionnaire', label = 'Questionnaire', value = NULL),
                textInput('a_questionn_ref', label = 'Reference', value = NULL),
                textInput('a_constructs', label = 'Construct(s)', value = NULL)
                )), # end second column # end second fluidRow (Assignment 2)
-        column(4, h3(' ~~~~~~~~~~~~~~~~~~ '),
-               textInput('a_timepoint', label = 'Timepoint', value = NULL),
+        column(4,p('You can assign a sigle value to all selected rows or multiple values (one to each row)
+                 by separating them with a "; " or a ", ". Note that assigning multiple values only works 
+                 if the number of entries matches the number of rows selected!'),
                textInput('a_gr_section', label = 'Section', value = NULL),
                textInput('a_gr_qnumber', label = 'Question number(s)', value = NULL),
                p('You can genetate an approximate list and it paste above.'),
                column(6, numericInput('fromn', label = 'From', value = 1)),
                column(6, numericInput('ton',   label = 'To', value = 10)),
                               br(),br(),
+               textInput('a_data_source', label = 'Data source', value = NULL),
+               textInput('a_timepoint', label = 'Timepoint', value = NULL),
                # actionButton('undo', label = 'Undo selection', style='display: block; margin-left: auto; margin-right: auto;'),br(),
                actionButton('download', label = 'Download selected', style='display: block; margin-left: auto; margin-right: 2; color: #0C3690; background-color: #B6CCE7; border-color: #0C3690'),br(),
                actionButton('assign', label = 'Assign', style='display: block; margin-left: auto; margin-right: 2;
                             color: #0C3690; background-color: #B6CCE7; border-color: #0C3690'),
         ) # end third column  
       ), # end Fluidrow
-      width = 12), # end Sidebarpanel 
+      width = 12), # end sidebarPanel 
     
     # Main panel for displaying outputs ----------------------------------------
     mainPanel(
@@ -127,8 +141,8 @@ ui <- fluidPage(titlePanel(h1('Generation R metadata app', # Add title panel
                  ), 
       ), # end tabsetPanel
     width = 12) # end mainPanel
-  ) # end Sidebarlayout
-) # end Fluidpage
+  ) # end sidebarLayout
+) # end fluidPage
 
 
 ################################################################################
@@ -136,57 +150,53 @@ ui <- fluidPage(titlePanel(h1('Generation R metadata app', # Add title panel
 ################################################################################
 
 server <- function(input, output) {
-    # Display selected table 
-    getSelection <- reactive({
-      assign(qsum, selected = input$selection,
+  grSelected <- reactive({
+    assign(qsum, selected = input$gr_n,
+           based_on = 'data_source', download=FALSE)
+  })
+  observeEvent(input$gr_n, {cat('DATASOURCE: ',input$gr_n,'---------------------',
+                                file=logfile, append=TRUE)})         
+  # Display selected table 
+  getSelection <- reactive({
+      assign(grSelected(), selected = input$selection,
              based_on = input$based_on,
              case_sensy = input$case_sensy,
              sel_type = input$sel_type, 
              and_also = c(input$based_on2, input$selection2), download=FALSE)
-    })
-    output$view <- renderTable({ getSelection() })
+  })
+  output$view <- renderTable({ getSelection() })
     
-    observeEvent(input$download, {
-      assign(qsum, selected = input$selection,
+  observeEvent(input$download, {
+      assign(grSelected(), selected = input$selection,
              based_on = input$based_on,
              case_sensy = input$case_sensy,
              sel_type = input$sel_type,
              and_also = c(input$based_on2, input$selection2),
              download = file.path(dir, paste0("selectd-", Sys.Date(), ".csv"))
              )
-    })
-    
-    # TODO: FIX DOWNLOAD??
-    # output$download <- downloadHandler(
-    #   # Create the download file name
-    #   filename = paste("GENR-selected-", Sys.Date(), ".csv", sep=''),
-    #   content = function(file) {
-    #     write.csv(as.data.frame(getSelection()), file.path(dir, file), row.names = T)
-    #    }
-    #   # contentType = 'text/csv'
-    # )
-    
-    # Overview information 
-    output$selected     <- renderText({ input$selection }) # selection criteria
-    output$sel_based_on <- renderText({ input$based_on })  # "
-    output$n_selected   <- renderText({ nrow(getSelection()) }) # number of rows
-    output$n_generated  <- renderText({ paste0(list_numbers(start=input$fromn, end=input$ton),', ') })
-    
-    # Upon clicking "assign"
-    ass_data_source <- eventReactive(input$assign, { unlist(strsplit(input$a_data_source,', ')) })
-    ass_var_label <- eventReactive(input$assign, { unlist(strsplit(input$a_var_label,'; ')) })
-    ass_timepoint <- eventReactive(input$assign, { unlist(strsplit(input$a_timepoint,', ')) })
-    ass_reporter <- eventReactive(input$assign, { input$a_reporter })
-    ass_subject <- eventReactive(input$assign, { input$a_subject })
-    ass_var_comp <- eventReactive(input$assign, { input$a_var_comp }) 
-    ass_gr_section <- eventReactive(input$assign, { unlist(strsplit(input$a_gr_section,', ')) })
-    ass_gr_qnumber <- eventReactive(input$assign, { unlist(strsplit(input$a_gr_qnumber,', ')) })
-    ass_questionnaire <- eventReactive(input$assign, { input$a_questionnaire })
-    ass_questionnaire_ref <- eventReactive(input$assign, { input$a_questionnaire_ref })
-    ass_constructs <- eventReactive(input$assign, { input$a_constructs })
-    
+  })
+  
+  # Overview information 
+  output$selected     <- renderText({ input$selection }) # selection criteria
+  output$sel_based_on <- renderText({ input$based_on })  # "
+  output$n_selected   <- renderText({ nrow(getSelection()) }) # number of rows
+  output$n_generated  <- renderText({ paste0(list_numbers(start=input$fromn, end=input$ton),', ') })
+  
+  # Upon clicking "assign"
+  ass_data_source <- eventReactive(input$assign, { unlist(strsplit(input$a_data_source,', ')) })
+  ass_var_label <- eventReactive(input$assign, { unlist(strsplit(input$a_var_label,'; ')) })
+  ass_timepoint <- eventReactive(input$assign, { unlist(strsplit(input$a_timepoint,', ')) })
+  ass_reporter <- eventReactive(input$assign, { input$a_reporter })
+  ass_subject <- eventReactive(input$assign, { input$a_subject })
+  ass_var_comp <- eventReactive(input$assign, { input$a_var_comp }) 
+  ass_gr_section <- eventReactive(input$assign, { unlist(strsplit(input$a_gr_section,', ')) })
+  ass_gr_qnumber <- eventReactive(input$assign, { unlist(strsplit(input$a_gr_qnumber,', ')) })
+  ass_questionnaire <- eventReactive(input$assign, { input$a_questionnaire })
+  ass_questionnaire_ref <- eventReactive(input$assign, { input$a_questionnaire_ref })
+  ass_constructs <- eventReactive(input$assign, { input$a_constructs })
+  
     # Display assigned table 
-    output$view2 <- renderTable({ assign(qsum, selected = input$selection, # verbose=True,print_labels=False
+  output$view2 <- renderTable({ assign(grSelected(), selected = input$selection, # verbose=True,print_labels=False
                                         based_on = input$based_on,
                                         case_sensy = input$case_sensy,
                                         sel_type = input$sel_type, 
@@ -202,33 +212,33 @@ server <- function(input, output) {
                                         questionnaire = ass_questionnaire(),
                                         questionnaire_ref = ass_questionnaire_ref(),
                                         constructs = ass_constructs() ) })
-                                     
-    observeEvent(input$assign, {
-      and_also <- ifelse(input$selection2 != '', 
-                         paste0(', and_also = (', input$based_on2,', ', input$selection2, ')'),'')
-      data_source <- ifelse(input$a_data_source!='',paste0(', data_source = ', input$a_data_source),'')
-      timepoint <- ifelse(input$a_timepoint!='',paste0(', timepoint = ', input$a_timepoint),'')
-      reporter <- ifelse(input$a_reporter!='',paste0(', reporter = ', input$a_reporter),'')
-      var_label <- ifelse(input$a_var_label!='',paste0(', var_label = ', input$a_var_label),'')
-      subject <- ifelse(input$a_subject!='',paste0(', subject = ', input$a_subject),'')
-      gr_section <- ifelse(input$a_gr_section!='',paste0(', gr_section = ', input$a_gr_section),'')
-      gr_qnumber <- ifelse(input$a_gr_qnumber!='',paste0(', gr_qnumber = ', input$a_gr_qnumber),'')
-      var_comp <- ifelse(input$a_var_comp!='',paste0(', var_comp = ', input$a_var_comp),'')
-      questionnaire <- ifelse(input$a_questionnaire!='',paste0(', questionnaire = ',input$a_questionnaire),'')
-      questionnaire_ref <- ifelse(input$a_questionnaire_ref!='',paste0(', questionnaire_ref = ',input$a_questionnaire_ref),'')
-      constructs <- ifelse(input$a_constructs!= '', paste0(', constructs = ', input$a_constructs),'')
+  
+  observeEvent(input$assign, {
+    case_sensy_TF <- ifelse(input$case_sensy == TRUE, 'True', 'False')
+    and_also <- ifelse(input$selection2 != '', 
+                       paste0(', and_also = ("', input$based_on2,'", "', input$selection2, '")'),'')
+    data_source <- ifelse(input$a_data_source!='',paste0(', data_source = "', input$a_data_source,'"'),'')
+    timepoint <- ifelse(input$a_timepoint!='',paste0(', timepoint = "', input$a_timepoint,'"'),'')
+    reporter <- ifelse(input$a_reporter!='',paste0(', reporter = "', input$a_reporter,'"'),'')
+    var_label <- ifelse(input$a_var_label!='',paste0(', var_label = "', input$a_var_label,'"'),'')
+    subject <- ifelse(input$a_subject!='',paste0(', subject = "', input$a_subject,'"'),'')
+    gr_section <- ifelse(input$a_gr_section!='',paste0(', gr_section = "', input$a_gr_section,'"'),'')
+    gr_qnumber <- ifelse(input$a_gr_qnumber!='',paste0(', gr_qnumber = "', input$a_gr_qnumber,'"'),'')
+    var_comp <- ifelse(input$a_var_comp!='',paste0(', var_comp = "', input$a_var_comp,'"'),'')
+    questionnaire <- ifelse(input$a_questionnaire!='',paste0(', questionnaire = "',input$a_questionnaire,'"'),'')
+    questionnaire_ref <- ifelse(input$a_questionnaire_ref!='',paste0(', questionnaire_ref = ',input$a_questionnaire_ref,'"'),'')
+      constructs <- ifelse(input$a_constructs!= '', paste0(', constructs = "', input$a_constructs,'"'),'')
       
-      log <- paste0('assign(q, selected = ',input$selection,
-             ', based_on = ', input$based_on,
-             ', case_sensy = ', input$case_sensy,
-             ', sel_type = ', input$sel_type, 
+  log <- paste0('assign(selected = "',input$selection,
+             '", based_on = "', case_sensy_TF,
+             '", case_sensy = ', input$case_sensy,
+             ', sel_type = "', input$sel_type, 
              and_also, data_source, timepoint, reporter, var_label, subject,
              gr_section, gr_qnumber, var_comp, questionnaire, questionnaire_ref,
              constructs,')','\n# ',nrow(getSelection()))
-      cat(log, file=logfile, sep ='\n\n\n', append=TRUE)
-    })
-    
-}
+  cat(log, file=logfile, sep ='\n\n\n', append=TRUE)
+  }) # end assignment
+} # end server
     
 ################################################################################
 # --------------------------- MAKE IT ALIVE & SHINY  ---------------------------
