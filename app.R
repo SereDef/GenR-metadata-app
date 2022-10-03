@@ -108,9 +108,8 @@ ui <- fluidPage(titlePanel(h1('Generation R metadata app', # Add title panel
                textInput('a_timepoint', label = 'Timepoint', value = NULL),
                # actionButton('undo', label = 'Undo selection', style='display: block; margin-left: auto; margin-right: auto;'),br(),
                sidebarPanel(
-                 actionButton('download', label = 'Download selected', style='display: block; margin-left: auto; margin-right: 2; color: #0C3690; background-color: #B6CCE7; border-color: #0C3690'),
-                 actionButton('assign', label = 'Assign', style='display: block; margin-left: auto; margin-right: 2;
-                            color: #0C3690; background-color: #B6CCE7; border-color: #0C3690') ),
+                 actionButton('download', label = 'Download selected', style='color: #0C3690; background-color: #B6CCE7; border-color: #0C3690'),
+                 actionButton('assign', label = 'Assign', style='color: #0C3690; background-color: #B6CCE7; border-color: #0C3690') ),
         ) # end third column  
       ), # end Fluidrow
       width = 12), # end sidebarPanel 

@@ -1,4 +1,5 @@
 # GENERATION R ~ metadata app 
+<hr>
 Hi, this is a [shiny](http://shiny.rstudio.com/) application that can search and label variables in [**Generation R**](https://generationr.nl/) data. First of all, thank you so much for helping us constructing the data dictionary! 
 You can read about how to launch and use the application down here. 
 
@@ -63,6 +64,7 @@ If you scroll down a wee bit can also notice three tabs: `Selection`, `Check sel
 
 Let's start with how to select data. 
 
+<hr>
 ## Selection
 The first entry in the **Selection pane** allows you to choose the *"data source"* you are currently working on. 
 This is the GR-number of the questionnaire you chose from the [worksheet](https://docs.google.com/spreadsheets/d/1jIF1myCpcJbcd4L0KlbwDbyaSKyToHI_1jagUqtIdT4/edit#gid=0). 
@@ -83,7 +85,7 @@ to get familiar with it. You will see the following columns:
 * **`n_observed`**: *number of observations* (i.e., non-missing values) in the variable. 
 
 * **`data_source`**: which *GR-number* questionnaire, *interview*, or *visit* (e.g., for measurements) is the variable is coming from. 
-This is the columns we just selected on using the first filter. 
+This is the columns we just selected on using the first filter. For variables that are *scores* combining multiple data sources, we use the format: "**GR1001-03**".
 
 * **`gr_section`**: the *section* on the GR-number questionnaire (`A` to `K`).
 
@@ -91,14 +93,14 @@ This is the columns we just selected on using the first filter.
 
 * **`reporter`**: *who* reported the information? i.e., the person that completed the questionnaire or interview.
 
-* **`var_comp`**: the *variable type* as in: an `'item'` (i.e., a single question that was directly answered) or a `'score'` (i.e., a combination of items, for example a subscale total score). Other possible values include `'ID'` (i.e., for example 'IDC') or '`metadata'` (for example, child age).
+* **`var_comp`**: the *variable type* as in: an **item** (i.e., a single question that was directly answered) or a **score** (i.e., a combination of items, for example a subscale total score). Other possible values include **ID** (i.e., for example 'IDC') or **metadata** (for example, child age).
 
 * **`questionnaire`** and **`questionnaire_ref`**: some groups of items correspond to *validated questionnaires / interviews* 
 (e.g., Food frequency questionnaire (FDQ)) for which we point to a *reference* (the link to a relevant paper describing the instrument)
 
 * **`constructs`**: *what* is this variable measuring? e.g., 'diet', 'sleep', 'depression'...
 
-* **`var_type`**: `'factor'`,`'numeric'`, or `'character'`
+* **`var_type`**: *factor*,*numeric*, or *character*.
 
 * **`orig_file`**: the .sav file containing the variable.
 
@@ -108,8 +110,7 @@ This is the columns we just selected on using the first filter.
 
 * **`desctiptives`**: some basic descriptives: minimum, 1st quartile, mean, median, 3rd quartile and maximum for continuous variables; and value counts for factors. 
 
-You can already see that some of these values are already filled in and some you will need to fill, 
-but more about that in a moment. 
+You can already see that some of these values are already filled in and some you will need to fill, but more about that in a moment. 
 
 <hr>
 
@@ -123,17 +124,13 @@ Next in the Selection pane you see the **main search bar** (under <span style="c
 
 ----> Note: besides the default (contains) all other options are case sensitive. I will change this! 
 
-Go ahead and try typing in something and play around with the settings. You should again see resulting table 
-of results in the `Check selected` tab and the number of rows your search resulted in in the `Selection` tab.
+Go ahead and try typing in something and play around with the settings. You should again see resulting table of results in the `Check selected` tab and the number of rows your search resulted in in the `Selection` tab.
 
-You can search for **multiple strings** at same time by including a `|` between them. For example you can get 
-variable names containing "internalizing" OR "externalizing" by typing "internalizing**|**externalizing" in the search bar. You can do this as many times as you want (e.g., "internalizing|externalizing|problems|...").
+You can search for **multiple strings** at same time by including a `|` between them. For example you can get variable names containing "internalizing" OR "externalizing" by typing "internalizing**|**externalizing" in the search bar. You can do this as many times as you want (e.g., "internalizing|externalizing|problems|...").
 
-Sometimes one selection criteria is not sufficient to get the rows you are looking for, so you can include additional criteria 
-using the **additional search bar** (<span style="color:blue">**Also search for:**</span>) and the corresponding <span style="color:blue">**Based on**</span> bar. This works as a
-**"AND"** statement, so, for example, you can search for variable names containing "internalizing" AND GR section == "A".
+Sometimes one selection criteria is not sufficient to get the rows you are looking for, so you can include additional criteria using the **additional search bar** (<span style="color:blue">**Also search for:**</span>) and the corresponding <span style="color:blue">**Based on**</span> bar. This works as a **"AND"** statement, so, for example, you can search for variable names containing "internalizing" AND GR section == "A".
 
-### <ins>*Tip*</ins>: **regular expressions (`regex` syntax)**. 
+### <ins>*Tip*</ins>: **regular expressions (`regex` syntax)**
 Regular expressions are a set of symbols that can be used to establish rules or regularities in search commands. This is how you can search for something *ending* or *starting with* with a string, for example. But it gets better: you can select something, e.g., *ending with any number* or *any capital letter followed by two numbers* and so on... pretty cool yes.
 
 Here are some useful basic commands that you can leverage to select exactly the rows that you need:
@@ -145,7 +142,7 @@ Here are some useful basic commands that you can leverage to select exactly the 
    
    - **`[a-z]`** and **`[A-Z]`** are *any lower-case letter* and *any capital letter* respectively, from a to z.
    
-   - **`{n}`**,**`{n,}`**,**`{n,m}`** (where **n** and **m** are positive numbers) specify the number of occurrences. So for example, "o{2}" will find all words that contain "oo" (= "o" repeated *exactly* 2 times). "[0-9]{3,}" will give you matches that have *at least* 3 digits. And "\\^[0-9]{1,3}[a-z]{1}" will return any row that begins with at least 1 and maximum 3 digits, followed by a single, lowercase letter.
+   - **`{n}`**,**`{n,}`**,**`{n,m}`** (where **n** and **m** are positive numbers) specify the number of occurrences. So for example, "o{2}" will find all words that contain "oo" (= "o" repeated *exactly* 2 times). "[0-9]{3,}" will give you matches that have *at least* 3 digits. And "\^[0-9]{1,3}[a-z]{1}" will return any row that begins with at least 1 and maximum 3 digits, followed by a single, lowercase letter.
    
 There are several [cheatsheets](https://learn.microsoft.com/en-us/dotnet/standard/base-types/regular-expression-language-quick-reference) online if you are curious.
 
@@ -155,6 +152,7 @@ Regex is very handy, but can be confusing sometimes, so, if there is some rule t
 
 If you have a large umber of selected rows and scrolling through the `Check selected` tab becomes annoying, you can click on the **`Download selected`** button on the bottom right. This will download a .csv file with the selected table inside the folder that you indicated at the beginning.
 
+<hr>
 ## Assignment
 Using the entries in the **Assignment pane**, you can change the value of any column in the metadata table, for the rows you have selected. 
 
@@ -183,20 +181,10 @@ For all the assignment text bars, you can either enter a **single value** that w
 
 * <span style="color:blue">**Variable type**</span> chose one of the options, to indicate weather the variable is an`'item'` (i.e., a single question that was directly answered), a `'score'` (i.e., a combination of items, for example a subscale total score) or `'metadata'` (for example, child age). Other possible values include `'ID'` (i.e., for example 'IDC').
 
+**Note**: most of the remaining columns are <ins>already assigned</ins> automatically, but please correct them if you spot errors or missing values. These include **`data_source`** and **`timepoint`**, which you can assign in the app, but also: `n_observed`,`var_type`,`orig_file`,`n_total`, `n_missing`, and `desctiptives`. It you notice something wrong with these, please report it in the [issues document](https://docs.google.com/spreadsheets/d/1hCDNHtlB_ksVX5toP3CQIDAVbHS9w8Xi3ZPkW79DIns/edit#gid=0).
 
+<hr>
 
-**Note**: most of these three columns are <ins>already assigned</ins> automatically but please correct them if you spot errors or missing values.
+Thank you so much for helping and good luck with the assignment! 
 
-* **`data_source`**: this specifies the *source* of the variable. <br> For Questionnaire data this will be either a GR-id or a "interview". If you assign a GR-id that is included in the `GR_ids` dictionary defined above, the function will automatically assign also `timepoint` and `reporter`. If the data source is new, however, please specify those manually. <br> For variables that are _scores_ combining multiple data sources, I tipically use the format `'GR1001-03'`.
-
-    For measurements and other data, `data_source` can take values such as e.g., blood, urine, DXA scan, brain MRI ... (<font color='red'>*specify standard*</font>). 
-
-* **`timepoint`**: when whas the value measured in child age. This is expressed in *weeks gestation* (`'w'`) for prenatal variables, in *months* (`'m'`) during the first year of life and in *years* (`'y'`) for all subsequent measures. There is a space in between the number and the time unit, see for instance the values specified in `GR_ids`. <font color='red'>*Note that this is not always reflecting the median age of the measurement.*</font>
-
-
-> **Tip**: in python arguments are *positional* so you don't have to specify their name if you input them in the correct order. So for example you can simply specify the data source as the fifth argument. But of course spelling it out makes it clearer.
-
-These are the values that, more commonly will need to be assigned: 
-
-* **other stuff**: `n_observed`,`var_type`,`orig_file`,`n_total`, `n_missing`, `desctiptives`.
 
