@@ -82,14 +82,11 @@ ui <- fluidPage(titlePanel(h1('Generation R metadata app', # Add title panel
                )), # end first column # end second fluidRow (selection 2)
         column(4, fluidRow(style = "width:350px",h3('Assignment pane'),
                p('Type or paste the string you want to assign.'),
-               textInput('a_var_label', label = 'Variable label', value = NULL),
-               p('Please select only one of the following options. Select none if the label is not applicable (set to " ").'),
-               column(4, checkboxGroupInput('a_subject', label = 'Subject', 
-                                      choices = list('child'='child','mother'='mother','partner'='partner','none'=' '), selected = character(0)) ),
-               column(4, checkboxGroupInput('a_reporter', label = 'Reporter', 
-                                      choices = list('child'='child','mother'='mother','partner'='partner','none'=' '), selected = character(0)) ),
-               column(4, checkboxGroupInput('a_var_comp', label = 'Variable type', 
-                                      choices = list('item'='item', 'score'='score','metadata'='meta','none'=' '), selected = character(0)) )
+               textInput('a_gr_section', label = 'Section', value = NULL),
+               textInput('a_gr_qnumber', label = 'Question number(s)', value = NULL),
+               p('Genetate a list of numbers and it paste above.'),
+               column(6, numericInput('fromn', label = 'From', value = 1)),
+               column(6, numericInput('ton',   label = 'To', value = 10)),
                ),# end first fluid row
                fluidRow(style = "width:350px",
                textInput('a_questionnaire', label = 'Questionnaire', value = NULL),
@@ -99,18 +96,21 @@ ui <- fluidPage(titlePanel(h1('Generation R metadata app', # Add title panel
         column(4,p('You can assign a sigle value to all selected rows or multiple values (one to each row)
                  by separating them with a "; " or a ", ". Note that assigning multiple values only works 
                  if the number of entries matches the number of rows selected!'),
-               textInput('a_gr_section', label = 'Section', value = NULL),
-               textInput('a_gr_qnumber', label = 'Question number(s)', value = NULL),
-               p('You can genetate an approximate list and it paste above.'),
-               column(6, numericInput('fromn', label = 'From', value = 1)),
-               column(6, numericInput('ton',   label = 'To', value = 10)),
-                              br(),br(),
+               textInput('a_var_label', label = 'Variable label', value = NULL),
+               p('Please select only one of the following options. Select none if the label is not applicable (set to " ").'),
+               column(4, checkboxGroupInput('a_subject', label = 'Subject', 
+                                            choices = list('child'='child','mother'='mother','partner'='partner','none'=' '), selected = character(0)) ),
+               column(4, checkboxGroupInput('a_reporter', label = 'Reporter', 
+                                            choices = list('child'='child','mother'='mother','partner'='partner','teacher'='teacher'), selected = character(0)) ),
+               column(4, checkboxGroupInput('a_var_comp', label = 'Variable type', 
+                                            choices = list('item'='item', 'score'='score','metadata'='meta','ID'='ID'), selected = character(0)) ),
                textInput('a_data_source', label = 'Data source', value = NULL),
                textInput('a_timepoint', label = 'Timepoint', value = NULL),
                # actionButton('undo', label = 'Undo selection', style='display: block; margin-left: auto; margin-right: auto;'),br(),
-               actionButton('download', label = 'Download selected', style='display: block; margin-left: auto; margin-right: 2; color: #0C3690; background-color: #B6CCE7; border-color: #0C3690'),br(),
-               actionButton('assign', label = 'Assign', style='display: block; margin-left: auto; margin-right: 2;
-                            color: #0C3690; background-color: #B6CCE7; border-color: #0C3690'),
+               sidebarPanel(
+                 actionButton('download', label = 'Download selected', style='display: block; margin-left: auto; margin-right: 2; color: #0C3690; background-color: #B6CCE7; border-color: #0C3690'),
+                 actionButton('assign', label = 'Assign', style='display: block; margin-left: auto; margin-right: 2;
+                            color: #0C3690; background-color: #B6CCE7; border-color: #0C3690') ),
         ) # end third column  
       ), # end Fluidrow
       width = 12), # end sidebarPanel 

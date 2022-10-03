@@ -57,89 +57,146 @@ Note that if are handy or what to get familiar with Pyhton, the assignment can a
 
 # TUTORIAL 
 Now that the application is running in your browser, you should see two main panes: 
-a [**Selection pane**]() and an [**Assignment pane**](), with a bunch of options you can set up. 
+a <span style="color:blue">**Selection pane**</span> and an <span style="color:blue">**Assignment pane**</span>, with a bunch of options you can set up. 
+
 If you scroll down a wee bit can also notice three tabs: `Selection`, `Check selected` and `Check assigned`. 
+
 Let's start with how to select data. 
 
 ## Selection
-The first entry in the Section pane allows you to choose the *"data source"* you are currently working on. 
+The first entry in the **Selection pane** allows you to choose the *"data source"* you are currently working on. 
 This is the GR-number of the questionnaire you chose from the [worksheet](https://docs.google.com/spreadsheets/d/1jIF1myCpcJbcd4L0KlbwDbyaSKyToHI_1jagUqtIdT4/edit#gid=0). 
-You do not need to select anything here, but It sure helps :) 
+You don't need to select anything here, but It sure helps :slightly_smiling_face: 
 
-If you made a selection, you can immediately see **number of rows** you have selected reported down in the
+If you made a selection, you can immediately see the **number of rows** you have selected reported down in the
 `Selection` tab. 
 
-........
+Switch to the `Check selected` tab to visualize the portion of metadata table you selected. This is the table you are going to be working on all the time so take a moment
+to get familiar with it. You will see the following columns:
 
-Next you see the **main search bar**, with three very useful search settings: 
-* [**Based on**](): controls the column you are searching in. Default is `Variable name` but you can change this to any other column in the data table. 
-* [**search type**](): by default the app returns all the rows that `contain` the string you entered in the search bar, but you may be interested, for example, only in variables that `start with`, `end with`, or are `equal` to some value. 
-* [**case sensitive**](): by default, the search is <ins>not</ins> case sensitive, but you can change that by ticking this box.
+* **`var_name`** and **`var_label`**: the *variable name* and  *variable label* (i.e., short description) that is sometimes present in the data .sav files. 
 
-Go ahead and try typing in something under [**Search for**]() and play around with the settings. 
+* **`timepoint`**: *when* was the variable measured, in child age. This is expressed in *weeks gestation* (`'w'`) for prenatal variables, in *months* (`'m'`) during the first year of life and in *years* (`'y'`) for all subsequent measures.
 
-> note you can search for multiple strings at the same time if you separate them with a `|` 
-Choose your selection criteria by entering a string (e.g., something) or a list of strings (e.g., something, something else). Separate elements in lists using commas. 
+* **`subject`**: *who* is the information about? 
 
- case sensitive box.
+* **`n_observed`**: *number of observations* (i.e., non-missing values) in the variable. 
 
-You can base your selection on any column in the metadata dataframe. Default is 'orig_file', which holds the names of the original .sav files. You can change this to any column in the dataset, for example var_name for selecting based on variable names, or var_label if you want to use variable labels. At the moment the function only supports a single value of based_on, but do let me know if you need more flexibility.
+* **`data_source`**: which *GR-number* questionnaire, *interview*, or *visit* (e.g., for measurements) is the variable is coming from. 
+This is the columns we just selected on using the first filter. 
 
-Additionally, by default the function will search for any row containing the strings you entered in selected. You may want to select rows that start / end with or correspond exactly to the string you entered, and you can do that by ticking the appropriate box. Note: besides the default, contains, all other options are case sensitive.
+* **`gr_section`**: the *section* on the GR-number questionnaire (`A` to `K`).
 
-When a single selection criterium is not enough, for example if you want to select not only questionnare GR1001 but also section A (data_source = 'GR1001' and gr_section = 'A'), use the second set of selection criteria. This time you string. 
+* **`gr_qnumber`**: the *number* of the question / item. 
 
-#### <ins>Tip time</ins>: regular expressions (`regex` syntax)
-If nose around the assign function you may notice how it uses regular espression to make the search more flexible. These are small symbols that can are used to establish rules or regularities. In other words you not only can search for something _containing_ 'feed' but also for example everything **ending** with or **beginning** with 'feed'. It gets better, you can say select something _ending with any number_ or _any capital letter followed by two numbers_ and so on... pretty cool yes. 
+* **`reporter`**: *who* reported the information? i.e., the person that completed the questionnaire or interview.
 
-Here are some useful basic commands that you can leverage:
-   - if you want to set the condition a bit more flexibly, for example select section A or B you can put a | in between the values, like this: 'A|B'. You can do this as many times as you want.
-   - '^_' means "begins with". For example '^Bre' will get you everything starting with 'Bre'. 
-   - '_\\$$' means "ends with". For example '23\\$' will give everything ending with '23'.
+* **`var_comp`**: the *variable type* as in: an `'item'` (i.e., a single question that was directly answered) or a `'score'` (i.e., a combination of items, for example a subscale total score). Other possible values include `'ID'` (i.e., for example 'IDC') or '`metadata'` (for example, child age).
 
-After you give some selection option you can see some info about your selection in the spare under the main panel (number of rows selected) and you can visualize the selected table in the selected pane. you can also download a vsv file if that is 
+* **`questionnaire`** and **`questionnaire_ref`**: some groups of items correspond to *validated questionnaires / interviews* 
+(e.g., Food frequency questionnaire (FDQ)) for which we point to a *reference* (the link to a relevant paper describing the instrument)
 
-As usual, if soemthing is not working quite right or you need more flexibility in selection, let me know. but for now let's move on to assigning some values.
+* **`constructs`**: *what* is this variable measuring? e.g., 'diet', 'sleep', 'depression'...
+
+* **`var_type`**: `'factor'`,`'numeric'`, or `'character'`
+
+* **`orig_file`**: the .sav file containing the variable.
+
+* **`n_total`**: the total number of observations in the file (including NAs).
+
+* **`n_missing`**: the number of missing values. 
+
+* **`desctiptives`**: some basic descriptives: minimum, 1st quartile, mean, median, 3rd quartile and maximum for continuous variables; and value counts for factors. 
+
+You can already see that some of these values are already filled in and some you will need to fill, 
+but more about that in a moment. 
+
+<hr>
+
+Next in the Selection pane you see the **main search bar** (under <span style="color:blue">**Search for:**</span>) with three very useful search settings: 
+
+* <span style="color:blue">**Based on**</span>: controls the column you are searching in. Default is `Variable name` but you can change this to any other column in the data table. At the moment the function only supports a single value/column at the time, but do let me know if you need more flexibility.
+
+* <span style="color:blue">**Search type**</span>: by default the app returns all the rows that `contain` the string you typed in the search bar, but you may be interested, for example, only in variables that `start with`, `end with`, or are `equal` to your search.
+
+* <span style="color:blue">**case sensitive**</span>: by default, the search is <ins>not</ins> case sensitive, but you can change that by ticking this box.
+
+----> Note: besides the default (contains) all other options are case sensitive. I will change this! 
+
+Go ahead and try typing in something and play around with the settings. You should again see resulting table 
+of results in the `Check selected` tab and the number of rows your search resulted in in the `Selection` tab.
+
+You can search for **multiple strings** at same time by including a `|` between them. For example you can get 
+variable names containing "internalizing" OR "externalizing" by typing "internalizing**|**externalizing" in the search bar. You can do this as many times as you want (e.g., "internalizing|externalizing|problems|...").
+
+Sometimes one selection criteria is not sufficient to get the rows you are looking for, so you can include additional criteria 
+using the **additional search bar** (<span style="color:blue">**Also search for:**</span>) and the corresponding <span style="color:blue">**Based on**</span> bar. This works as a
+**"AND"** statement, so, for example, you can search for variable names containing "internalizing" AND GR section == "A".
+
+### <ins>*Tip*</ins>: **regular expressions (`regex` syntax)**. 
+Regular expressions are a set of symbols that can be used to establish rules or regularities in search commands. This is how you can search for something *ending* or *starting with* with a string, for example. But it gets better: you can select something, e.g., *ending with any number* or *any capital letter followed by two numbers* and so on... pretty cool yes.
+
+Here are some useful basic commands that you can leverage to select exactly the rows that you need:
+   - **`^`** at the beginning of a string means ***begins with***. For example "^intern"" will get you everything *starting with* "intern". 
+   
+   - **`$`** at the end of a string means ***ends with***. For example "23$" will give everything *ending with* "23".
+   
+   - **`[0-9]`** or **`\d`** will give you any digit (from 0 to 9).
+   
+   - **`[a-z]`** and **`[A-Z]`** are *any lower-case letter* and *any capital letter* respectively, from a to z.
+   
+   - **`{n}`**,**`{n,}`**,**`{n,m}`** (where **n** and **m** are positive numbers) specify the number of occurrences. So for example, "o{2}" will find all words that contain "oo" (= "o" repeated *exactly* 2 times). "[0-9]{3,}" will give you matches that have *at least* 3 digits. And "\\^[0-9]{1,3}[a-z]{1}" will return any row that begins with at least 1 and maximum 3 digits, followed by a single, lowercase letter.
+   
+There are several [cheatsheets](https://learn.microsoft.com/en-us/dotnet/standard/base-types/regular-expression-language-quick-reference) online if you are curious.
+
+Regex is very handy, but can be confusing sometimes, so, if there is some rule that you notice using all the time, let me know, I can add a button to the app and make everyone's life a bit easier.
+
+<hr>
+
+If you have a large umber of selected rows and scrolling through the `Check selected` tab becomes annoying, you can click on the **`Download selected`** button on the bottom right. This will download a .csv file with the selected table inside the folder that you indicated at the beginning.
 
 ## Assignment
-You can change the value of any column you like for the rows you have selected.
+Using the entries in the **Assignment pane**, you can change the value of any column in the metadata table, for the rows you have selected. 
+
+For all the assignment text bars, you can either enter a **single value** that will be assigned to all the selected rows, or you can enter **multiple values**, by separating them with a `; `. If you want to assign multiple values, make sure that the number of values you entered corresponds with the number of rows  you selected! 
+
+* <span style="color:blue">**Section**</span> indicates the section on the GR- questionnaire (`A` to `K`). It is a *single capital letter*. I would suggest starting from this column when you work on completing your table, so you can use it in the selection and assignment of other metadata. 
+
+* <span style="color:blue">**Question number**</span> indicates the number of the question / item. This is sometimes  reported in the variable label or even indicated by the variable name, but I find it best to always check the questionnaire PDFs to make sure the number assigned corresponds. <br> Some questions have a more complex, nested structure with two or more levels, but don't worry about that for now. Assign all nested questions to the same number. 
+    If you want to assign a series of consecutive numbers to the rows you have selected, it may be useful to use the <span style="color:blue">**From**</span> and <span style="color:blue">**To**</span> bars to generate a list of numbers. You can copy-paste this from the `Selection` tab into the **Question number** bar (and adapt it if needed).
+    
+> NOTE: when there is a question in the Questionnaire PDF that is <ins>not</ins> in the metadata table, i.e., has not corresponding variable or score, please indicate this in the [issues document](https://docs.google.com/spreadsheets/d/1hCDNHtlB_ksVX5toP3CQIDAVbHS9w8Xi3ZPkW79DIns/edit#gid=0).
+
+* <span style="color:blue">**Questionnaire**</span>: some groups of items correspond to validated instruments. Please specify the **full name** of the instrument and its acronym between brackets, for example "Brief Symptoms Interview (BSI)". Please check the [Questionnaires Generation R with refs Aug 2020](https://github.com/SereDef/GenR-metadata-app/blob/main/useful%20files/Questionnaires%20Generation%20R%20with%20refs%20Aug%202020.doc) document, the [GenR_datataxonomy_v4](https://github.com/SereDef/GenR-metadata-app/blob/main/useful%20files/GenR_datataxonomy_v4.xlsx), or in the **referencesquestionnairesgenr** PDFs on the wiki, to identify these. 
+
+* <span style="color:blue">**Reference**</span> should be a **link** to the instrument reference or manual, which you should also find in the documents above. Preferably, this is the **DOI** (preceded by "https://doi.org/"). When this is not available you can use another link to the instrument reference/manual, or to a Generation R paper that describes the instrument. 
+
+* <span style="color:blue">**Constructs**</span>. To help make the search more flexible, we also want to tag variables with the *concepts* they are supposed to tap into. For example maternal smoking variables could carry the tags 'smoking','tabacco','cigarettes'. Please include 1-3 terms that you believe apply. Separate terms with `; `. These can be also general, e.g. 'mental health' or more precise, e.g. 'anxiety'. 
+
+* <span style="color:blue">**Variable label**</span> is used to set the value of `var_label`, i.e., the variable description. This is an important part of the data dictionary and a terribly messy one too. Some labels are empty (~15%), some are in Dutch, some are just not understandable (e.g., they use acronyms that are not spelled out or they are just copies of variable names). PLEASE HELP US FIX THIS. 
+    - For **items**, the label would normally correspond to the (complete) question that was asked, as you can read it in the PDFs, in English. If this is part of a nested question, please specify the *full* question so that it is understandable on its own. 
+    - For **scores**, please use the best description you can find, including both the full name of a score or measure, with its acronym between brackets (when applicable) and measurement unit after a coma (when applicable). For example: `'Body mass index (BMI), kg/m2'`. 
+    
+* <span style="color:blue">**Subject**</span> chose one of the options, to indicate who is the information about (`'child'`,`'mother'` or `'partner'`). Normally, this value can be assigned by *section* (look at the PDFs to quickly understand who the section is about). If not applicable, please set this to `none`.
+
+* <span style="color:blue">**Reporter**</span> chose one of the options, to indicate the person that completed the questionnaire/interview (`'child'`,`'mother'`, `'partner'` or `'teacher'`). Normally, this value was assigned automatically based on GR-number, but please correct it if you notice a mistake. 
+
+* <span style="color:blue">**Variable type**</span> chose one of the options, to indicate weather the variable is an`'item'` (i.e., a single question that was directly answered), a `'score'` (i.e., a combination of items, for example a subscale total score) or `'metadata'` (for example, child age). Other possible values include `'ID'` (i.e., for example 'IDC').
+
+
 
 **Note**: most of these three columns are <ins>already assigned</ins> automatically but please correct them if you spot errors or missing values.
+
 * **`data_source`**: this specifies the *source* of the variable. <br> For Questionnaire data this will be either a GR-id or a "interview". If you assign a GR-id that is included in the `GR_ids` dictionary defined above, the function will automatically assign also `timepoint` and `reporter`. If the data source is new, however, please specify those manually. <br> For variables that are _scores_ combining multiple data sources, I tipically use the format `'GR1001-03'`.
 
     For measurements and other data, `data_source` can take values such as e.g., blood, urine, DXA scan, brain MRI ... (<font color='red'>*specify standard*</font>). 
 
 * **`timepoint`**: when whas the value measured in child age. This is expressed in *weeks gestation* (`'w'`) for prenatal variables, in *months* (`'m'`) during the first year of life and in *years* (`'y'`) for all subsequent measures. There is a space in between the number and the time unit, see for instance the values specified in `GR_ids`. <font color='red'>*Note that this is not always reflecting the median age of the measurement.*</font>
 
-* **`reporter`**: the person that completed the questionnaire / interview. It can take the following values: `'mother'`,`'father'`,`'child'`,`'teacher'`, `'mother & father'` (for combined scores). If not applicable, please set this value to `' '`.
 
 > **Tip**: in python arguments are *positional* so you don't have to specify their name if you input them in the correct order. So for example you can simply specify the data source as the fifth argument. But of course spelling it out makes it clearer.
 
 These are the values that, more commonly will need to be assigned: 
-
-* **`gr_section`**: this indicates the section on the questionnaire (`A` to `K`). It is a single capital letter. I would suggest starting from this column when you work on completing your table, so you can use them in the selection and assignment of other metadata. 
-
-
-* **`gr_qnumber`**: indicates the number of the question / item. Note that this is also a _string_. This is sometimes indicated by the variable name or label, but I find it best to always check the questionnaire PDFs to make sure the number assigned corresponds. <br> Some questions have a more complex, nested structure with two or more levels. We encode this as follows: the first level is number and that is normally explicitly indicated on the PDF. For the second level we will use letters. Additional levels get numbers again. Levels are separated by a dot. <br> For example: 
-    You don't need to type this yourself every time, you can use the `list_numbers()` function instead. This takes two obligatory arguments, `start` and `end` which you can use to indicate the range of numbers.
-
-
-* **`var_label`**: variable description. This is an important part of the dictionary and a terribly messy one too. Some labels are not there (~15%), some are in Dutch, some are just not understandable (e.g., they use acromyms that are not spelled out or they are just copies of variable names). PLEASE HELP US FIX THIS. 
-    - For **items**, the label would normally correspond to the (complete) question that was asked, in English, as you can read it in the PDFs. If this is part of a nested question please specify the full question so that it is understandable on its own. 
-    - For **scores**, please use the best description you can find, including both the full name of a score or measure and its acromym (when applicable) and measurement unit (when applicable). Example of the format: `'Body mass index (BMI), kg/m2'`. 
-    Again, you don't need to do this one by one, you can use lists. For instance you can set the argument `print_labels = True` in the assign function to have a list of the variable labels in your selection. You can copy paste this, edit and assign it. 
-
-
-* **`subject`**: who is the information about? It can take the following values: `'mother'`,`'father'`,`'child'`, `'family'`. If not applicable, please set this value to `' '`. Normally this is value can be assigned by section (look at the PDFs to quickly understand who the section is about). If you are unsure, feel free to ask me. 
-
-
-* **`var_comp`**: this indicates if the variable is an `'item'` (i.e., a single question that was directly answered) or a `'score'` (i.e., a combination of items, for example a subscale total score). Other possible values include `'ID'` (i.e., for example 'IDC') or '`metadata'` (for example, child age).
-
-
-* **`questionnaire`** and **`questionnaire_ref`**: some groups of items correspond to validates questionnaires / interviews. You can find most of these in the document 'Questionnaires Generation R with refs 2021', the 'GenR measumeremnt overview' and 'datataxonomy' spreadsheets or in the 'referencesquestionnairesgenr' PDFs. Please specify `questionnaire` as the full name of the instrument and its acronym at the end between brackets. `questionnaire_ref` should be a link to the instrument reference or manual. Preferably, this is the DOI (preceded by 'https://doi.org/'). When this is not available you can use another link to the reference, or to a Generation R paper that describes the instrument. 
-
-
-* **`constructs`**: what is this variable measuring? To help make the search more flexible, we also want to tag varaiables with the concepts they are supposet to tap into. For example maternal smoking variables could carry the tags 'smoking','tabacco','cigarettes'. Please include 1-3 terms that you believe apply, thi can be also general e.g. 'psychopatology'. Separate terms with ';'.
 
 * **other stuff**: `n_observed`,`var_type`,`orig_file`,`n_total`, `n_missing`, `desctiptives`.
 
