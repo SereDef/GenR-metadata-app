@@ -29,11 +29,12 @@ Ok, let's see if we can get this application started.
 The app requires [R](http://cran.r-project.org/) (version >= 4.0.3) and the following packages:
 * [shiny](http://cran.r-project.org/package=shiny) (version >= 1.6.0)
 * [reticulate](https://rstudio.github.io/reticulate/) (version >= 1.26)
+* [DT](https://cran.r-project.org/web/packages/DT/index.html) (version >= 0.26)
 
 To launch the application, open **RStudio** (or any other R IDE), and paste the following
 command in your console (only do this if you need to install the packages I listed above):
 ```r
-install.packages(c("shiny","reticulate"), dependencies = TRUE)
+install.packages(c("shiny","reticulate","DT"), dependencies = TRUE)
 ```
 Once you have the right packages, the app can be directly invoked using the command:
 ```r
@@ -45,7 +46,7 @@ If you don't like that, simply remove the argument.
 
 Pretty soon you should see the message `Where do you want to store the output?` 
 appearing in the console. Please type or paste the path to the folder where you would 
-like to store the app output and press enter. This can be any folder as long as you remember where it is :) 
+like to store the app output (i.e. the files you are going to send to me) and press enter. This can be any folder as long as you remember where it is :) 
 
 Once you entered the path, you should see a `logfile-DATE.txt` appearing in the folder you chose. 
 This is empty for now, but will be filled in as you assign metadata to variables. This is also the

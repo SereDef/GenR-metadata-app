@@ -2,8 +2,15 @@
 # This is still very much work in progress so please if you have any suggestions 
 # or you want to help shoot me an email at s.defina@erasmusmc.nl
 
+# Prompt window to select output directory
+dir <- readline('Where do you want to store the output? ')
+# while input is not provided keep asking
+while(!file.exists(dir)){
+  dir <- readline('Where do you want to store the output? ')
+}
+
 # Load required r packages
-r_pack <- c('shiny', 'reticulate') # 'tcltk'
+r_pack <- c('shiny', 'reticulate','DT') # 'tcltk'
 invisible(lapply(r_pack, require, character.only = T));
 
 # Load required python packages
@@ -18,8 +25,6 @@ source_python('label_metadata.py')
 qsum <- read.csv('data/quest_meta.csv')
 qsum <- qsum[,-1] # get rid of index variable from pandas 
 
-dir <- readline('Where do you want to store the output? ')
-# Prompt window to select output directory
 # dir <- tcltk::tk_choose.dir(getwd(), caption = 'Where do you want to store the output?')
 # Define and create a log file 
 logfile <- file.path(dir, paste0('logfile-',Sys.Date(),'.txt'))
@@ -36,7 +41,8 @@ button_style <- 'color: #0C3690; background-color: #B6CCE7; border-color: #0C369
 # The fluidPage function creates a display that automatically adjusts to the dimensions
 # of user’s browser window.
   
-ui <- fluidPage(titlePanel(h1('Generation R metadata app', # Add title panel
+ui <- fluidPage(
+  titlePanel(h1('Generation R metadata app', # Add title panel
                               style='font-family:verdana; font-weight: bold; font-size:30pt;
                               color:#0C3690; background-color:#B6CCE7; padding: 10px 20px 10px 30px;')), 
   # Define a sidebar panel and a main panel layout for input and output
@@ -123,6 +129,8 @@ ui <- fluidPage(titlePanel(h1('Generation R metadata app', # Add title panel
                     span(textOutput('n_selected', inline=T), style='color:#0C3690'), 
                     'rows.'),
                  br(),
+                 h5('Manually selected variables:'), span(textOutput('rows_selected'), sep=', '),
+                 br(),
                  h5('Numbers:'), textOutput('n_generated'),
                  br(),
                  # textOutput('call'),
@@ -130,12 +138,9 @@ ui <- fluidPage(titlePanel(h1('Generation R metadata app', # Add title panel
                  img(src = 'generation-r-logo.png', height = 140, 
                      style='display: block; margin-left: auto; margin-right: 0;') 
                  ),
-        tabPanel('Check selected',
-                 tableOutput('view'),
-                 ), 
-        tabPanel('Check assigned',
-                 tableOutput('view2'),
-                 ), 
+        tabPanel('Check selected', DTOutput('view')), # tableOutput('view'),
+        tabPanel('Check assigned', DTOutput('view2')), 
+        
       ), # end tabsetPanel
     width = 12) # end mainPanel
   ) # end sidebarLayout
@@ -147,22 +152,44 @@ ui <- fluidPage(titlePanel(h1('Generation R metadata app', # Add title panel
 ################################################################################
 
 server <- function(input, output) {
-  grSelected <- reactive({
-    assign(qsum, selected = input$gr_n,
-           based_on = 'data_source', download=FALSE)
-  })
+  # step 1: select the data_source value 
+  grSelected <- reactive({ assign(qsum, selected = input$gr_n,
+                                  based_on = 'data_source', download=FALSE) })
+  # and note it in the log file 
   observeEvent(input$gr_n, {cat(input$gr_n,'-----------------------------------\n\n',
                                 file=logfile, append=TRUE)})         
-  # Display selected table 
-  getSelection <- reactive({
-      assign(grSelected(), selected = input$selection,
-             based_on = input$based_on,
-             case_sensy = input$case_sensy,
-             sel_type = input$sel_type, 
-             and_also = c(input$based_on2, input$selection2), download=FALSE)
-  })
-  output$view <- renderTable({ getSelection() })
-    
+  # Created sub-table based on panel input
+  getSelection <- reactive({ assign(grSelected(), selected = input$selection,
+                                     based_on = input$based_on,
+                                     case_sensy = input$case_sensy,
+                                     sel_type = input$sel_type, 
+                                     and_also = c(input$based_on2, input$selection2), 
+                                    download=FALSE) })
+  # Display table
+  tab_options <- list(paging = F,    ## paginate the output
+                      # pageLength = 20,  ## number of rows to output for each page
+                      scrollX = T, scrollY = T,   ## enable scrolling on X and Y axis
+                      autoWidth = T, ## use smart column width handling
+                      # server = FALSE,   ## use client-side processing (slow)
+                      dom = 'BifrtB', ## filter,processing,table,info,pagination control, download buttons
+                      buttons = c('csv', 'excel'),
+                      columnDefs = list(
+                        list(targets = 1, width = '500px'), # label column larger 
+                        list(targets = c(14,17), # orig_file and descriptives 
+                             render = JS( # if longer that 10 char cut the column
+                               "function(data, type, row, meta) {",
+                               "return type === 'display' && data.length > 10 ?",
+                               "'<span title=\"' + data + '\">' + data.substr(0, 10) + '...</span>' : data;",
+                               "}")))
+                      )
+  output$view <- renderDT(getSelection(), 
+                          editable = 'cell',
+                          options = tab_options,
+                          extensions = 'Buttons',
+                          filter = 'top', ## include column filters at the top
+                          rownames = F    ## don't show row numbers/names
+  )
+  # Download empty (not assigned table)
   observeEvent(input$download, {
       assign(grSelected(), selected = input$selection,
              based_on = input$based_on,
@@ -177,37 +204,54 @@ server <- function(input, output) {
   output$n_selected   <- renderText({ ifelse(is.null(nrow(getSelection())),'0',nrow(getSelection())) }) # number of rows
   output$n_generated  <- renderText({ paste0(list_numbers(start=input$fromn, end=input$ton),', ') })
   
+  output$rows_selected <- renderText({grSelected()[input$view_rows_selected, 'var_name']})
   # Upon clicking "assign"
-  ass_data_source <- eventReactive(input$assign, { unlist(strsplit(input$a_data_source,', ')) })
-  ass_var_label <- eventReactive(input$assign, { unlist(strsplit(input$a_var_label,'; ')) })
-  ass_timepoint <- eventReactive(input$assign, { unlist(strsplit(input$a_timepoint,', ')) })
-  ass_reporter <- eventReactive(input$assign, { input$a_reporter })
-  ass_subject <- eventReactive(input$assign, { input$a_subject })
-  ass_var_comp <- eventReactive(input$assign, { input$a_var_comp }) 
+  # input$view_cell_clicked: information about the cell being clicked of the form list(row = row_index, col = column_index, value = cell_value) (example)
+  # input$view_rows_current: the indices of rows on the current page
+  # input$view_rows_all: the indices of rows on all pages (after the table is filtered by the search strings)
+  # input$view_search: the global search string
+  # input$view_search_columns: the vector of column search strings when column filters are enabled
+  # input$view_state: the state information of the table (a list containing the search string, ordering and paging information; it is available only if the option stateSave = TRUE is applied to the table)
+  
+  
+  ass_data_source <- eventReactive(input$assign,{ unlist(strsplit(input$a_data_source,', ')) })
+  ass_var_label  <- eventReactive(input$assign, { unlist(strsplit(input$a_var_label,'; ')) })
+  ass_timepoint  <- eventReactive(input$assign, { unlist(strsplit(input$a_timepoint,', ')) })
+  ass_reporter   <- eventReactive(input$assign, { input$a_reporter })
+  ass_subject    <- eventReactive(input$assign, { input$a_subject })
+  ass_var_comp   <- eventReactive(input$assign, { input$a_var_comp }) 
   ass_gr_section <- eventReactive(input$assign, { unlist(strsplit(input$a_gr_section,', ')) })
   ass_gr_qnumber <- eventReactive(input$assign, { unlist(strsplit(input$a_gr_qnumber,', ')) })
   ass_questionnaire <- eventReactive(input$assign, { input$a_questionnaire })
   ass_questionnaire_ref <- eventReactive(input$assign, { input$a_questionnaire_ref })
   ass_constructs <- eventReactive(input$assign, { input$a_constructs })
   
-    # Display assigned table 
-  output$view2 <- renderTable({ assign(grSelected(), selected = input$selection, # verbose=True,print_labels=False
-                                        based_on = input$based_on,
-                                        case_sensy = input$case_sensy,
-                                        sel_type = input$sel_type, 
-                                        and_also = c(input$based_on2, input$selection2),
-                                        data_source = ass_data_source(),
-                                        timepoint = ass_timepoint(),
-                                        reporter = ass_reporter(),
-                                        var_label = ass_var_label(),
-                                        subject = ass_subject(),
-                                        gr_section = ass_gr_section(),
-                                        gr_qnumber = ass_gr_qnumber(),
-                                        var_comp = ass_var_comp(),
-                                        questionnaire = ass_questionnaire(),
-                                        questionnaire_ref = ass_questionnaire_ref(),
-                                        constructs = ass_constructs() ) })
+  # Manual selection 
+  manual_selected <- reactive(grSelected()[input$view_rows_selected, 'var_name'])
   
+  # Display assigned table 
+  output$view2 <- renderDT(assign(grSelected(), selected = input$selection, # verbose=True,print_labels=False
+                                  based_on = input$based_on,
+                                  case_sensy = input$case_sensy,
+                                  sel_type = input$sel_type, 
+                                  and_also = c(input$based_on2, input$selection2),
+                                  data_source = ass_data_source(),
+                                  timepoint = ass_timepoint(),
+                                  reporter = ass_reporter(),
+                                  var_label = ass_var_label(),
+                                  subject = ass_subject(),
+                                  gr_section = ass_gr_section(),
+                                  gr_qnumber = ass_gr_qnumber(),
+                                  var_comp = ass_var_comp(),
+                                  questionnaire = ass_questionnaire(),
+                                  questionnaire_ref = ass_questionnaire_ref(),
+                                  constructs = ass_constructs() ), 
+                          options = tab_options,
+                          extensions = 'Buttons',
+                          filter = 'top', ## include column filters at the top
+                          rownames = F    ## don't show row numbers/names
+  )
+  # Save in the log file 
   observeEvent(input$assign, {
     case_sensy_TF <- ifelse(input$case_sensy == TRUE, 'True', 'False')
     and_also <- ifelse(input$selection2 != '', 
@@ -231,6 +275,7 @@ server <- function(input, output) {
              and_also, data_source, timepoint, reporter, var_label, subject,
              gr_section, gr_qnumber, var_comp, questionnaire, questionnaire_ref,
              constructs,')','\n# ',nrow(getSelection()))
+  
   cat(log, file=logfile, sep ='\n\n\n', append=TRUE)
   }) # end assignment
 } # end server
