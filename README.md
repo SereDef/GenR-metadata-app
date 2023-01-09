@@ -11,7 +11,7 @@ Before you do anything, remember to keep track of the time you spend labeling da
 
 Finding out the (correct!) information about GenR data is not always straightforward unfortunately. 
 One thing you will probably need to have a look at are the PDFs of the questionnaires, which cannot
-be shared publicly, but you can find on the **info wiki**. 
+be shared publicly, but you can find on the [**info wiki**](https://erasmusmc.sharepoint.com/sites/GenRWiki/SitePages/Generation%20R%20Intranet.aspx?csf=1&web=1&e=789FCb). 
 We also tried to put together some additional resources / overviews that can help you out, so make sure 
 you keep and eye on the [**useful files**](https://github.com/SereDef/GenR-metadata-app/tree/main/useful%20files) 
 folder on this repo, and if you feel lost at any point, don't be afraid to ask me or other colleagues.
