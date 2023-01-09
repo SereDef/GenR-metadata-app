@@ -182,13 +182,14 @@ server <- function(input, output) {
                                "'<span title=\"' + data + '\">' + data.substr(0, 10) + '...</span>' : data;",
                                "}")))
                       )
-  output$view <- renderDT(getSelection(), 
-                          editable = 'cell',
-                          options = tab_options,
-                          extensions = 'Buttons',
-                          filter = 'top', ## include column filters at the top
-                          rownames = F    ## don't show row numbers/names
-  )
+  output$view <- DT::renderDT({ DT::datatable(getSelection(), 
+                                              editable = 'cell',
+                                              options = tab_options,
+                                              extensions = 'Buttons',
+                                              filter = 'top', ## include column filters at the top
+                                              rownames = F    ## don't show row numbers/names
+  ) %>% formatStyle(names(getSelection()), backgroundColor = styleEqual(c('',NA), c('pink','red'))) })
+  
   # Download empty (not assigned table)
   observeEvent(input$download, {
       assign(grSelected(), selected = input$selection,
@@ -230,27 +231,28 @@ server <- function(input, output) {
   manual_selected <- reactive(grSelected()[input$view_rows_selected, 'var_name'])
   
   # Display assigned table 
-  output$view2 <- renderDT(assign(grSelected(), selected = input$selection, # verbose=True,print_labels=False
-                                  based_on = input$based_on,
-                                  case_sensy = input$case_sensy,
-                                  sel_type = input$sel_type, 
-                                  and_also = c(input$based_on2, input$selection2),
-                                  data_source = ass_data_source(),
-                                  timepoint = ass_timepoint(),
-                                  reporter = ass_reporter(),
-                                  var_label = ass_var_label(),
-                                  subject = ass_subject(),
-                                  gr_section = ass_gr_section(),
-                                  gr_qnumber = ass_gr_qnumber(),
-                                  var_comp = ass_var_comp(),
-                                  questionnaire = ass_questionnaire(),
-                                  questionnaire_ref = ass_questionnaire_ref(),
-                                  constructs = ass_constructs() ), 
-                          options = tab_options,
-                          extensions = 'Buttons',
-                          filter = 'top', ## include column filters at the top
-                          rownames = F    ## don't show row numbers/names
-  )
+  output$view2 <- DT::renderDT({ DT::datatable(assign(grSelected(), selected = input$selection, # verbose=True,print_labels=False
+                                      based_on = input$based_on,
+                                      case_sensy = input$case_sensy,
+                                      sel_type = input$sel_type, 
+                                      and_also = c(input$based_on2, input$selection2),
+                                      data_source = ass_data_source(),
+                                      timepoint = ass_timepoint(),
+                                      reporter = ass_reporter(),
+                                      var_label = ass_var_label(),
+                                      subject = ass_subject(),
+                                      gr_section = ass_gr_section(),
+                                      gr_qnumber = ass_gr_qnumber(),
+                                      var_comp = ass_var_comp(),
+                                      questionnaire = ass_questionnaire(),
+                                      questionnaire_ref = ass_questionnaire_ref(),
+                                      constructs = ass_constructs() ), 
+                               options = tab_options,
+                               extensions = 'Buttons',
+                               filter = 'top', ## include column filters at the top
+                               rownames = F    ## don't show row numbers/names
+  ) %>% formatStyle(names(getSelection()), backgroundColor = styleEqual(c('',NA), c('pink','red'))) })
+  
   # Save in the log file 
   observeEvent(input$assign, {
     case_sensy_TF <- ifelse(input$case_sensy == TRUE, 'True', 'False')
