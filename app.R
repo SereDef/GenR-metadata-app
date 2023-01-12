@@ -16,11 +16,12 @@ invisible(lapply(r_pack, require, character.only = T));
 # Load required python packages
 py_pack <- c('pandas', 'typing')
 for (pack in py_pack) {
-  if (!pack %in% py_list_packages()$package) { py_install(pack) }
+  if (!pack %in% reticulate::py_list_packages()$package) { 
+    reticulate::py_install(pack, env=globalenv()) }
 }
 
 # Point to the backend py script the performs the search/assignment
-source_python('label_metadata.py')
+reticulate::source_python('label_metadata.py', envir= globalenv())
 # Load the base dataset 
 qsum <- read.csv('data/quest_meta.csv')[,-1] # get rid of index variable from pandas 
 

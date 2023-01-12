@@ -47,7 +47,7 @@ If you don't like that, simply remove the argument.
 Pretty soon you should see the message `Where do you want to store the output?` 
 appearing in the console. Please type or paste the path to the folder where you would 
 like to store the app output (i.e. the files you are going to send to me) and press enter. This can be any folder as long as you remember where it is :) 
-> NOTE: if you are using Windows, make sure you separate the folders with `\\`. 
+> NOTE: if you are using Windows, make sure you separate folders with `\` instead of `/`. 
 
 Once you entered the path, you should see a `logfile-DATE.txt` appearing in the folder you chose. 
 This is empty for now, but will be filled in as you assign metadata to variables. This is also the
