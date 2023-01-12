@@ -47,6 +47,7 @@ If you don't like that, simply remove the argument.
 Pretty soon you should see the message `Where do you want to store the output?` 
 appearing in the console. Please type or paste the path to the folder where you would 
 like to store the app output (i.e. the files you are going to send to me) and press enter. This can be any folder as long as you remember where it is :) 
+> NOTE: if you are using Windows, make sure you separate the folders with `\\`. 
 
 Once you entered the path, you should see a `logfile-DATE.txt` appearing in the folder you chose. 
 This is empty for now, but will be filled in as you assign metadata to variables. This is also the
@@ -98,15 +99,15 @@ Switch to the `Check selected` tab to visualize the portion of metadata table yo
 
 * **`var_type`**: *factor*,*numeric*, or *character*.
 
-* **`orig_file`**: the .sav file containing the variable.
+* **`orig_file`**: the .sav file containing the variable. This is probably cut in the table to save space but if you leave your mouse on the cell for a second you can visualize the full name. 
 
 * **`n_total`**: the total number of observations in the file (including NAs).
 
 * **`n_missing`**: the number of missing values. 
 
-* **`desctiptives`**: some basic descriptives: minimum, 1st quartile, mean, median, 3rd quartile and maximum for continuous variables; and value counts for factors. 
+* **`desctiptives`**: some basic descriptives: minimum, 1st quartile, mean, median, 3rd quartile and maximum for continuous variables; and value counts for factors. This is probably cut in the table to save space but if you leave your mouse on the cell for a second you can visualize the full descriptive. 
 
-You can already see that some of these values are already filled in and some you will need to fill, but more about that in a moment. 
+You can already see that some of these values are already filled in and some you will need to fill (these should be highlighted in pink and red), but more about that in a moment. 
 
 <hr>
 
@@ -120,7 +121,7 @@ Next in the Selection pane you see the **main search bar** (under [**Search for:
 
 ----> Note: besides the default (contains) all other options are case sensitive. I will change this! 
 
-Go ahead and try typing in something and play around with the settings. You should again see resulting table of results in the `Check selected` tab and the number of rows your search resulted in in the `Selection` tab.
+Go ahead and try typing in something and play around with the settings. You should again see resulting table of results in the `Check selected` tab and the number of rows your search resulted in should also be reported in the `Selection` tab.
 
 You can search for **multiple strings** at same time by including a `|` between them. For example you can get variable names containing "internalizing" OR "externalizing" by typing "internalizing**|**externalizing" in the search bar. You can do this as many times as you want (e.g., "internalizing|externalizing|problems|...").
 
@@ -146,12 +147,14 @@ Regex is very handy, but can be confusing sometimes, so, if there is some rule t
 
 <hr>
 
-If you have a large umber of selected rows and scrolling through the `Check selected` tab becomes annoying, you can click on the **`Download selected`** button on the bottom right. This will download a .csv file with the selected table inside the folder that you indicated at the beginning.
+If you have a large number of selected rows and scrolling through the `Check selected` tab becomes annoying, you can click on the **`CSV`** or **`Excel`** button on the top left. This will download a .csv or .xlsx file of the selected table, as save it in the folder that you indicated at the beginning.
 
 ## Assignment
 Using the entries in the **Assignment pane**, you can change the value of any column in the metadata table, for the rows you have selected. 
 
-For all the assignment text bars, you can either enter a **single value** that will be assigned to all the selected rows, or you can enter **multiple values**, by separating them with a `; `. If you want to assign multiple values, make sure that the number of values you entered corresponds with the number of rows  you selected! 
+For all the assignment text bars, you can either enter a **single value** that will be assigned to all the selected rows, or you can enter **multiple values**, by separating them with a `; `. If you want to assign multiple values, make sure that the number of values you entered corresponds with the number of rows  you selected!
+
+To assign values, simply click on the **`Assign`** button. Now you can check your progress in the  `Check assigned` tab. This will look exactly like the table in `Check selected` but your changes are now saved there. Note that a .csv file with saved changes will also automatically appear in the folder that you indicated at the beginning, if you find that easier to check. 
 
 * [**Section**]() indicates the section on the GR- questionnaire (`A` to `K`). It is a *single capital letter*. I would suggest starting from this column when you work on completing your table, so you can use it in the selection and assignment of other metadata. 
 
@@ -178,8 +181,12 @@ For all the assignment text bars, you can either enter a **single value** that w
 
 **Note**: most of the remaining columns are <ins>already assigned</ins> automatically, but please correct them if you spot errors or missing values. These include **`data_source`** and **`timepoint`**, which you can assign in the app, but also: `n_observed`,`var_type`,`orig_file`,`n_total`, `n_missing`, and `desctiptives`. It you notice something wrong with these, please report it in the [issues document](https://docs.google.com/spreadsheets/d/1hCDNHtlB_ksVX5toP3CQIDAVbHS9w8Xi3ZPkW79DIns/edit#gid=0).
 
+Anything else that you can't find information about or you are just not sure, note it in the [issues document](https://docs.google.com/spreadsheets/d/1hCDNHtlB_ksVX5toP3CQIDAVbHS9w8Xi3ZPkW79DIns/edit#gid=0) se we can look into it together, or ask datamanagement for help. 
+
 <hr>
 
-Thank you so much for helping and good luck with the assignment! 
+Thank you so much for helping and good luck with the assignment! Please remember that if anything isn't working very well or you just would like it to be more efficient, feel free to ask, maybe I can help.
+
+Cheers!
 
 

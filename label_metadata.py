@@ -47,7 +47,7 @@ def assign(q, selected: Union[str, list],  # var_type, n_observed, orig_file, n_
            and_also: tuple = None,
            verbose=False,
            print_labels=False,
-           download = None,
+           download = None, full_quest_download = None,
            # assignment arguments
            data_source: str = None,
            timepoint: Union[str, list] = None,
@@ -177,8 +177,12 @@ def assign(q, selected: Union[str, list],  # var_type, n_observed, orig_file, n_
     show = q.loc[sel,] # .set_index('var_name')
 
     if download:
-        show.to_csv(download)
-            
+        if full_quest_download:
+            fullshow = q.loc[q['data_source'].str.contains(full_quest_download), ]
+            fullshow.to_csv(download)
+        else:
+            show.to_csv(download)
+        
     return (show)
 
 

@@ -22,8 +22,7 @@ for (pack in py_pack) {
 # Point to the backend py script the performs the search/assignment
 source_python('label_metadata.py')
 # Load the base dataset 
-qsum <- read.csv('data/quest_meta.csv')
-qsum <- qsum[,-1] # get rid of index variable from pandas 
+qsum <- read.csv('data/quest_meta.csv')[,-1] # get rid of index variable from pandas 
 
 # dir <- tcltk::tk_choose.dir(getwd(), caption = 'Where do you want to store the output?')
 # Define and create a log file 
@@ -114,9 +113,7 @@ ui <- fluidPage(
                                             choices = list('item'='item', 'score'='score','metadata'='meta','ID'='ID'), selected = character(0)) ),
                textInput('a_data_source', label = 'Data source', value = NULL),
                textInput('a_timepoint', label = 'Timepoint', value = NULL),
-               br(), column(4, ),
-               column(4, actionButton('download', label = 'Download selected', style=button_style)), column(1, ),
-               column(3, actionButton('assign', label = 'Assign', style=button_style)),
+               br(), actionButton('assign', label = 'Assign', style=button_style),
         ) # end third column  
       ), # end Fluidrow
       width = 12), # end sidebarPanel 
@@ -152,11 +149,12 @@ ui <- fluidPage(
 ################################################################################
 
 server <- function(input, output) {
-  # step 1: select the data_source value 
+  # step 1: select the data_source value and download empty (not assigned table)
   grSelected <- reactive({ assign(qsum, selected = input$gr_n,
-                                  based_on = 'data_source', download=FALSE) })
+                                  based_on = 'data_source')})
+                                  # download=file.path(dir, paste0(input$gr_n, '-', Sys.Date(), ".csv"))) })
   # and note it in the log file 
-  observeEvent(input$gr_n, {cat(input$gr_n,'-----------------------------------\n\n',
+  observeEvent(input$gr_n, {cat(input$gr_n,'# -----------------------------------\n\n',
                                 file=logfile, append=TRUE)})         
   # Created sub-table based on panel input
   getSelection <- reactive({ assign(grSelected(), selected = input$selection,
@@ -189,17 +187,7 @@ server <- function(input, output) {
                                               filter = 'top', ## include column filters at the top
                                               rownames = F    ## don't show row numbers/names
   ) %>% formatStyle(names(getSelection()), backgroundColor = styleEqual(c('',NA), c('pink','red'))) })
-  
-  # Download empty (not assigned table)
-  observeEvent(input$download, {
-      assign(grSelected(), selected = input$selection,
-             based_on = input$based_on,
-             case_sensy = input$case_sensy,
-             sel_type = input$sel_type,
-             and_also = c(input$based_on2, input$selection2),
-             download = file.path(dir, paste0("selected-", Sys.Date(), ".csv"))
-             )
-  })
+
   
   # Overview information 
   output$n_selected   <- renderText({ ifelse(is.null(nrow(getSelection())),'0',nrow(getSelection())) }) # number of rows
@@ -213,7 +201,6 @@ server <- function(input, output) {
   # input$view_search: the global search string
   # input$view_search_columns: the vector of column search strings when column filters are enabled
   # input$view_state: the state information of the table (a list containing the search string, ordering and paging information; it is available only if the option stateSave = TRUE is applied to the table)
-  
   
   ass_data_source <- eventReactive(input$assign,{ unlist(strsplit(input$a_data_source,', ')) })
   ass_var_label  <- eventReactive(input$assign, { unlist(strsplit(input$a_var_label,'; ')) })
@@ -230,23 +217,30 @@ server <- function(input, output) {
   # Manual selection 
   manual_selected <- reactive(grSelected()[input$view_rows_selected, 'var_name'])
   
+  # Update downloaded CSV file with assigned values 
+  observeEvent(input$assign, { assign(grSelected(), 
+                                       selected = input$selection, # verbose=True,print_labels=False
+                                       based_on = input$based_on,
+                                       case_sensy = input$case_sensy,
+                                       sel_type = input$sel_type, 
+                                       and_also = c(input$based_on2, input$selection2),
+                                       data_source = ass_data_source(),
+                                       timepoint = ass_timepoint(),
+                                       reporter = ass_reporter(),
+                                       var_label = ass_var_label(),
+                                       subject = ass_subject(),
+                                       gr_section = ass_gr_section(),
+                                       gr_qnumber = ass_gr_qnumber(),
+                                       var_comp = ass_var_comp(),
+                                       questionnaire = ass_questionnaire(),
+                                       questionnaire_ref = ass_questionnaire_ref(),
+                                       constructs = ass_constructs(), 
+                                       download = file.path(dir, paste0(input$gr_n, '-', Sys.Date(), ".csv")),
+                                       full_quest_download = input$gr_n)
+  })
+  
   # Display assigned table 
-  output$view2 <- DT::renderDT({ DT::datatable(assign(grSelected(), selected = input$selection, # verbose=True,print_labels=False
-                                      based_on = input$based_on,
-                                      case_sensy = input$case_sensy,
-                                      sel_type = input$sel_type, 
-                                      and_also = c(input$based_on2, input$selection2),
-                                      data_source = ass_data_source(),
-                                      timepoint = ass_timepoint(),
-                                      reporter = ass_reporter(),
-                                      var_label = ass_var_label(),
-                                      subject = ass_subject(),
-                                      gr_section = ass_gr_section(),
-                                      gr_qnumber = ass_gr_qnumber(),
-                                      var_comp = ass_var_comp(),
-                                      questionnaire = ass_questionnaire(),
-                                      questionnaire_ref = ass_questionnaire_ref(),
-                                      constructs = ass_constructs() ), 
+  output$view2 <- DT::renderDT({ DT::datatable(read.csv(file.path(dir, paste0(input$gr_n, '-', Sys.Date(), ".csv")))[,-1], 
                                options = tab_options,
                                extensions = 'Buttons',
                                filter = 'top', ## include column filters at the top
@@ -255,7 +249,7 @@ server <- function(input, output) {
   
   # Save in the log file 
   observeEvent(input$assign, {
-    case_sensy_TF <- ifelse(input$case_sensy == TRUE, 'True', 'False')
+    case_sensy_TF <- ifelse(input$case_sensy == T, 'True', 'False')
     and_also <- ifelse(input$selection2 != '', 
                        paste0(', and_also = ("', input$based_on2,'", "', input$selection2, '")'),'')
     data_source <- ifelse(input$a_data_source!='',paste0(', data_source = "', input$a_data_source,'"'),'')
@@ -268,7 +262,7 @@ server <- function(input, output) {
     var_comp <- ifelse(input$a_var_comp!='',paste0(', var_comp = "', input$a_var_comp,'"'),'')
     questionnaire <- ifelse(input$a_questionnaire!='',paste0(', questionnaire = "',input$a_questionnaire,'"'),'')
     questionnaire_ref <- ifelse(input$a_questionnaire_ref!='',paste0(', questionnaire_ref = ',input$a_questionnaire_ref,'"'),'')
-      constructs <- ifelse(input$a_constructs!= '', paste0(', constructs = "', input$a_constructs,'"'),'')
+    constructs <- ifelse(input$a_constructs!= '', paste0(', constructs = "', input$a_constructs,'"'),'')
       
   log <- paste0('assign(selected = "',input$selection,
              '", based_on = "', input$based_on,
