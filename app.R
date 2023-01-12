@@ -3,14 +3,14 @@
 # or you want to help shoot me an email at s.defina@erasmusmc.nl
 
 # Prompt window to select output directory
-dir <- readline('Where do you want to store the output? ')
+#dir <- readline('Where do you want to store the output? ')
 # while input is not provided keep asking
-while(!file.exists(dir)){
-  dir <- readline('Where do you want to store the output? ')
-}
+# while(!file.exists(dir)){
+#   dir <- readline('Where do you want to store the output? ')
+# }
 
 # Load required r packages
-r_pack <- c('shiny', 'reticulate','DT') # 'tcltk'
+r_pack <- c('shiny', 'reticulate','DT', 'shinyFiles', 'fs') # 'tcltk'
 invisible(lapply(r_pack, require, character.only = T));
 
 # Load required python packages
@@ -24,13 +24,6 @@ for (pack in py_pack) {
 reticulate::source_python('label_metadata.py', envir= globalenv())
 # Load the base dataset 
 qsum <- read.csv('data/quest_meta.csv')[,-1] # get rid of index variable from pandas 
-
-# dir <- tcltk::tk_choose.dir(getwd(), caption = 'Where do you want to store the output?')
-# Define and create a log file 
-logfile <- file.path(dir, paste0('logfile-',Sys.Date(),'.txt'))
-if (!file.exists(logfile)){
-  file.create(logfile)
-}
 
 button_style <- 'color: #0C3690; background-color: #B6CCE7; border-color: #0C3690'
 
@@ -52,7 +45,10 @@ ui <- fluidPage(
       fluidRow(
         column(4, 
                fluidRow(style = "width:350px", h3('Selection pane'),
-               selectInput('gr_n', label = 'Select data source:', 
+               column(6, shinyDirButton('path_out', 'Select output folder', 
+                                        title='Please select a folder when you want to store output', 
+                                        style = paste('margin-top: 25px;', button_style))),
+               column(6, selectInput('gr_n', label = 'Select data source:', 
                            choices=list('','GR1001'='GR1001','GR1002'='GR1002','GR1003'='GR1003',
                                         'GR1004'='GR1004','GR1005'='GR1005','interview'='interview',
                                         'home-interview'='home-interview','GR1018'='GR1018',
@@ -65,9 +61,9 @@ ui <- fluidPage(
                                         'GR1082'='GR1082','GR1083'='GR1083','GR1084'='GR1084',
                                         'GR1086'='GR1086','GR1093'='GR1093','GR1094'='GR1094',
                                         'GR1095'='GR1095','GR1096'='GR1096','GR1097'='GR1097',
-                                        'COVID'='COVID'), selected = NULL), 
+                                        'COVID'='COVID'), selected = NULL)),
+                # <ins>Tip</ins>: Use "|" in between words if you want to select multiple strings.'),br(),
                p('Type (part of) the string you want to select.'),
-               # <ins>Tip</ins>: Use "|" in between words if you want to select multiple strings.'),br(),
                textInput('selection', label='Search for:', value = ''),
                column(12, selectInput('based_on', label = 'Based on:', choices=list('Variable name'='var_name','Variable label'='var_label',
                                                                          'Questionnaire'='questionnaire','Section'='gr_section',
@@ -114,7 +110,7 @@ ui <- fluidPage(
                                             choices = list('item'='item', 'score'='score','metadata'='meta','ID'='ID'), selected = character(0)) ),
                textInput('a_data_source', label = 'Data source', value = NULL),
                textInput('a_timepoint', label = 'Timepoint', value = NULL),
-               br(), actionButton('assign', label = 'Assign', style=button_style),
+               br(), actionButton('assign', label = 'Assign', style=button_style, align = 'center'),
         ) # end third column  
       ), # end Fluidrow
       width = 12), # end sidebarPanel 
@@ -130,6 +126,7 @@ ui <- fluidPage(
                  h5('Manually selected variables:'), span(textOutput('rows_selected'), sep=', '),
                  br(),
                  h5('Numbers:'), textOutput('n_generated'),
+                 textOutput('directorypath'),
                  br(),
                  # textOutput('call'),
                  a('https://generationr.nl/'), # Hyperlink to generation R website
@@ -149,22 +146,11 @@ ui <- fluidPage(
 # ------------------ Define server logic to view selected dataset  -------------
 ################################################################################
 
-server <- function(input, output) {
-  # step 1: select the data_source value and download empty (not assigned table)
-  grSelected <- reactive({ assign(qsum, selected = input$gr_n,
-                                  based_on = 'data_source')})
-                                  # download=file.path(dir, paste0(input$gr_n, '-', Sys.Date(), ".csv"))) })
-  # and note it in the log file 
-  observeEvent(input$gr_n, {cat(input$gr_n,'# -----------------------------------\n\n',
-                                file=logfile, append=TRUE)})         
-  # Created sub-table based on panel input
-  getSelection <- reactive({ assign(grSelected(), selected = input$selection,
-                                     based_on = input$based_on,
-                                     case_sensy = input$case_sensy,
-                                     sel_type = input$sel_type, 
-                                     and_also = c(input$based_on2, input$selection2), 
-                                    download=FALSE) })
-  # Display table
+server <- function(input, output, session) {
+  volumes <- c(Home = fs::path_home(), "R Installation" = R.home(), getVolumes()())
+  shinyDirChoose(input, 'path_out', roots = volumes, session = session)
+  
+  # Display options 
   tab_options <- list(paging = F,    ## paginate the output
                       # pageLength = 20,  ## number of rows to output for each page
                       scrollX = T, scrollY = T,   ## enable scrolling on X and Y axis
@@ -179,22 +165,116 @@ server <- function(input, output) {
                                "function(data, type, row, meta) {",
                                "return type === 'display' && data.length > 10 ?",
                                "'<span title=\"' + data + '\">' + data.substr(0, 10) + '...</span>' : data;",
-                               "}")))
-                      )
-  output$view <- DT::renderDT({ DT::datatable(getSelection(), 
-                                              editable = 'cell',
-                                              options = tab_options,
-                                              extensions = 'Buttons',
-                                              filter = 'top', ## include column filters at the top
-                                              rownames = F    ## don't show row numbers/names
-  ) %>% formatStyle(names(getSelection()), backgroundColor = styleEqual(c('',NA), c('pink','red'))) })
+                               "}"))))
+  
+  observe({ # wrap in choice of folder location for storage 
+    if (!identical(parseDirPath(volumes, input$path_out), character(0))){
+      dir = normalizePath(parseDirPath(volumes, input$path_out))
+      
+      logfile <- file.path(dir, paste0('Logfile-',Sys.Date(),'.txt'))
+      tabfile <- file.path(dir, paste0(input$gr_n, '-', Sys.Date(), ".csv")) # THAT is where emty file comes from
+      
+      if (!file.exists(logfile)) { file.create(logfile) }
+      
+      # step 1: select the data_source value and download empty (not assigned table)
+      grSelected <- reactive({ assign(qsum, selected = input$gr_n, based_on='data_source') })
+      
+      # and note it in the log file 
+      if(!is.null(input$gr_n)) { # TODO: is.null doesnt work but worry about it later 
+        cat(input$gr_n,'# -----------------------------------\n\n', file=logfile, append=T) }
+      
+      # Created sub-table based on panel input
+      getSelection <- reactive({ assign(grSelected(), selected = input$selection,
+                                        based_on = input$based_on,
+                                        case_sensy = input$case_sensy,
+                                        sel_type = input$sel_type, 
+                                        and_also = c(input$based_on2, input$selection2), 
+                                        download=F) })
+      # Display table (check selected)
+      output$view <- DT::renderDT({ DT::datatable(getSelection(), 
+                                                  editable = 'cell',
+                                                  options = tab_options,
+                                                  extensions = 'Buttons',
+                                                  filter = 'top', ## include column filters at the top
+                                                  rownames = F    ## don't show row numbers/names
+      ) %>% formatStyle(names(getSelection()), backgroundColor = styleEqual(c('',NA), c('pink','red'))) })
+      
+      # Overview information 
+      output$n_selected   <- renderText({ ifelse(is.null(nrow(getSelection())),'0',nrow(getSelection())) }) # number of rows
+      output$n_generated  <- renderText({ paste0(list_numbers(start=input$fromn, end=input$ton),', ') })
+      output$rows_selected <- renderText({grSelected()[input$view_rows_selected, 'var_name']})
+      
+      # Upon clicking "assign"
+      ass_data_source <- eventReactive(input$assign,{ unlist(strsplit(input$a_data_source,', ')) })
+      ass_var_label  <- eventReactive(input$assign, { unlist(strsplit(input$a_var_label,'; ')) })
+      ass_timepoint  <- eventReactive(input$assign, { unlist(strsplit(input$a_timepoint,', ')) })
+      ass_reporter   <- eventReactive(input$assign, { input$a_reporter })
+      ass_subject    <- eventReactive(input$assign, { input$a_subject })
+      ass_var_comp   <- eventReactive(input$assign, { input$a_var_comp }) 
+      ass_gr_section <- eventReactive(input$assign, { unlist(strsplit(input$a_gr_section,', ')) })
+      ass_gr_qnumber <- eventReactive(input$assign, { unlist(strsplit(input$a_gr_qnumber,', ')) })
+      ass_questionnaire <- eventReactive(input$assign, { input$a_questionnaire })
+      ass_questionnaire_ref <- eventReactive(input$assign, { input$a_questionnaire_ref })
+      ass_constructs <- eventReactive(input$assign, { input$a_constructs })
+      
+      # Update downloaded CSV file with assigned values 
+      observeEvent(input$assign, { assign(grSelected(), 
+                                          selected = input$selection, # verbose=True,print_labels=False
+                                          based_on = input$based_on,
+                                          case_sensy = input$case_sensy,
+                                          sel_type = input$sel_type, 
+                                          and_also = c(input$based_on2, input$selection2),
+                                          data_source = ass_data_source(),
+                                          timepoint = ass_timepoint(),
+                                          reporter = ass_reporter(),
+                                          var_label = ass_var_label(),
+                                          subject = ass_subject(),
+                                          gr_section = ass_gr_section(),
+                                          gr_qnumber = ass_gr_qnumber(),
+                                          var_comp = ass_var_comp(),
+                                          questionnaire = ass_questionnaire(),
+                                          questionnaire_ref = ass_questionnaire_ref(),
+                                          constructs = ass_constructs(), 
+                                          download = tabfile,
+                                          full_quest_download = input$gr_n) })
+      # Display assigned table 
+      output$view2 <- DT::renderDT({ DT::datatable(read.csv(tabfile)[,-1], 
+                                                   options = tab_options,
+                                                   extensions = 'Buttons',
+                                                   filter = 'top', ## include column filters at the top
+                                                   rownames = F    ## don't show row numbers/names
+      ) %>% formatStyle(names(getSelection()), backgroundColor = styleEqual(c('',NA), c('pink','red'))) })
+      
+      # Save in the log file 
+      observeEvent(input$assign, {
+        case_sensy_TF <- ifelse(input$case_sensy == T, 'True', 'False')
+        and_also <- ifelse(input$selection2 != '', 
+                           paste0(', and_also = ("', input$based_on2,'", "', input$selection2, '")'),'')
+        data_source <- ifelse(input$a_data_source!='',paste0(', data_source = "', input$a_data_source,'"'),'')
+        timepoint <- ifelse(input$a_timepoint!='',paste0(', timepoint = "', input$a_timepoint,'"'),'')
+        reporter <- ifelse(input$a_reporter!='',paste0(', reporter = "', input$a_reporter,'"'),'')
+        var_label <- ifelse(input$a_var_label!='',paste0(', var_label = "', input$a_var_label,'"'),'')
+        subject <- ifelse(input$a_subject!='',paste0(', subject = "', input$a_subject,'"'),'')
+        gr_section <- ifelse(input$a_gr_section!='',paste0(', gr_section = "', input$a_gr_section,'"'),'')
+        gr_qnumber <- ifelse(input$a_gr_qnumber!='',paste0(', gr_qnumber = "', input$a_gr_qnumber,'"'),'')
+        var_comp <- ifelse(input$a_var_comp!='',paste0(', var_comp = "', input$a_var_comp,'"'),'')
+        questionnaire <- ifelse(input$a_questionnaire!='',paste0(', questionnaire = "',input$a_questionnaire,'"'),'')
+        questionnaire_ref <- ifelse(input$a_questionnaire_ref!='',paste0(', questionnaire_ref = ',input$a_questionnaire_ref,'"'),'')
+        constructs <- ifelse(input$a_constructs!= '', paste0(', constructs = "', input$a_constructs,'"'),'')
+      
+      log <- paste0('assign(selected = "',input$selection,
+                    '", based_on = "', input$based_on,
+                    '", case_sensy = ', case_sensy_TF,
+                    ', sel_type = "', input$sel_type, 
+                    and_also, data_source, timepoint, reporter, var_label, subject,
+                    gr_section, gr_qnumber, var_comp, questionnaire, questionnaire_ref,
+                    constructs,')','\n# ',nrow(getSelection()))
+      
+      cat(log, file=logfile, sep ='\n\n\n', append=T) })
+    }
+  })
+} # end server  
 
-  
-  # Overview information 
-  output$n_selected   <- renderText({ ifelse(is.null(nrow(getSelection())),'0',nrow(getSelection())) }) # number of rows
-  output$n_generated  <- renderText({ paste0(list_numbers(start=input$fromn, end=input$ton),', ') })
-  
-  output$rows_selected <- renderText({grSelected()[input$view_rows_selected, 'var_name']})
   # Upon clicking "assign"
   # input$view_cell_clicked: information about the cell being clicked of the form list(row = row_index, col = column_index, value = cell_value) (example)
   # input$view_rows_current: the indices of rows on the current page
@@ -203,79 +283,9 @@ server <- function(input, output) {
   # input$view_search_columns: the vector of column search strings when column filters are enabled
   # input$view_state: the state information of the table (a list containing the search string, ordering and paging information; it is available only if the option stateSave = TRUE is applied to the table)
   
-  ass_data_source <- eventReactive(input$assign,{ unlist(strsplit(input$a_data_source,', ')) })
-  ass_var_label  <- eventReactive(input$assign, { unlist(strsplit(input$a_var_label,'; ')) })
-  ass_timepoint  <- eventReactive(input$assign, { unlist(strsplit(input$a_timepoint,', ')) })
-  ass_reporter   <- eventReactive(input$assign, { input$a_reporter })
-  ass_subject    <- eventReactive(input$assign, { input$a_subject })
-  ass_var_comp   <- eventReactive(input$assign, { input$a_var_comp }) 
-  ass_gr_section <- eventReactive(input$assign, { unlist(strsplit(input$a_gr_section,', ')) })
-  ass_gr_qnumber <- eventReactive(input$assign, { unlist(strsplit(input$a_gr_qnumber,', ')) })
-  ass_questionnaire <- eventReactive(input$assign, { input$a_questionnaire })
-  ass_questionnaire_ref <- eventReactive(input$assign, { input$a_questionnaire_ref })
-  ass_constructs <- eventReactive(input$assign, { input$a_constructs })
-  
   # Manual selection 
-  manual_selected <- reactive(grSelected()[input$view_rows_selected, 'var_name'])
-  
-  # Update downloaded CSV file with assigned values 
-  observeEvent(input$assign, { assign(grSelected(), 
-                                       selected = input$selection, # verbose=True,print_labels=False
-                                       based_on = input$based_on,
-                                       case_sensy = input$case_sensy,
-                                       sel_type = input$sel_type, 
-                                       and_also = c(input$based_on2, input$selection2),
-                                       data_source = ass_data_source(),
-                                       timepoint = ass_timepoint(),
-                                       reporter = ass_reporter(),
-                                       var_label = ass_var_label(),
-                                       subject = ass_subject(),
-                                       gr_section = ass_gr_section(),
-                                       gr_qnumber = ass_gr_qnumber(),
-                                       var_comp = ass_var_comp(),
-                                       questionnaire = ass_questionnaire(),
-                                       questionnaire_ref = ass_questionnaire_ref(),
-                                       constructs = ass_constructs(), 
-                                       download = file.path(dir, paste0(input$gr_n, '-', Sys.Date(), ".csv")),
-                                       full_quest_download = input$gr_n)
-  })
-  
-  # Display assigned table 
-  output$view2 <- DT::renderDT({ DT::datatable(read.csv(file.path(dir, paste0(input$gr_n, '-', Sys.Date(), ".csv")))[,-1], 
-                               options = tab_options,
-                               extensions = 'Buttons',
-                               filter = 'top', ## include column filters at the top
-                               rownames = F    ## don't show row numbers/names
-  ) %>% formatStyle(names(getSelection()), backgroundColor = styleEqual(c('',NA), c('pink','red'))) })
-  
-  # Save in the log file 
-  observeEvent(input$assign, {
-    case_sensy_TF <- ifelse(input$case_sensy == T, 'True', 'False')
-    and_also <- ifelse(input$selection2 != '', 
-                       paste0(', and_also = ("', input$based_on2,'", "', input$selection2, '")'),'')
-    data_source <- ifelse(input$a_data_source!='',paste0(', data_source = "', input$a_data_source,'"'),'')
-    timepoint <- ifelse(input$a_timepoint!='',paste0(', timepoint = "', input$a_timepoint,'"'),'')
-    reporter <- ifelse(input$a_reporter!='',paste0(', reporter = "', input$a_reporter,'"'),'')
-    var_label <- ifelse(input$a_var_label!='',paste0(', var_label = "', input$a_var_label,'"'),'')
-    subject <- ifelse(input$a_subject!='',paste0(', subject = "', input$a_subject,'"'),'')
-    gr_section <- ifelse(input$a_gr_section!='',paste0(', gr_section = "', input$a_gr_section,'"'),'')
-    gr_qnumber <- ifelse(input$a_gr_qnumber!='',paste0(', gr_qnumber = "', input$a_gr_qnumber,'"'),'')
-    var_comp <- ifelse(input$a_var_comp!='',paste0(', var_comp = "', input$a_var_comp,'"'),'')
-    questionnaire <- ifelse(input$a_questionnaire!='',paste0(', questionnaire = "',input$a_questionnaire,'"'),'')
-    questionnaire_ref <- ifelse(input$a_questionnaire_ref!='',paste0(', questionnaire_ref = ',input$a_questionnaire_ref,'"'),'')
-    constructs <- ifelse(input$a_constructs!= '', paste0(', constructs = "', input$a_constructs,'"'),'')
-      
-  log <- paste0('assign(selected = "',input$selection,
-             '", based_on = "', input$based_on,
-             '", case_sensy = ', case_sensy_TF,
-             ', sel_type = "', input$sel_type, 
-             and_also, data_source, timepoint, reporter, var_label, subject,
-             gr_section, gr_qnumber, var_comp, questionnaire, questionnaire_ref,
-             constructs,')','\n# ',nrow(getSelection()))
-  
-  cat(log, file=logfile, sep ='\n\n\n', append=TRUE)
-  }) # end assignment
-} # end server
+  # manual_selected <- reactive(grSelected()[input$view_rows_selected, 'var_name'])
+
     
 ################################################################################
 # --------------------------- MAKE IT ALIVE & SHINY  ---------------------------
