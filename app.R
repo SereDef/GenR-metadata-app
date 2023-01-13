@@ -13,15 +13,27 @@
 r_pack <- c('shiny', 'reticulate','DT', 'shinyFiles', 'fs') # 'tcltk'
 invisible(lapply(r_pack, require, character.only = T));
 
-# Load required python packages
-py_pack <- c('pandas', 'typing')
-for (pack in py_pack) {
-  if (!pack %in% reticulate::py_list_packages()$package) { 
-    reticulate::py_install(pack, env=globalenv()) }
+# Create python virtual environment if it doesnt exist already
+if (!'r-reticulate' %in% conda_list()$name) {
+  cat('Creating new environment. ')
+  conda_create('r-reticulate')
+  py_pack <- c('pandas', 'typing')
+  for (pack in py_pack) { reticulate::conda_install('r-reticulate', pack) }
 }
+cat('Python environment all set up. ')
+# Use the enviroment 
+reticulate::use_condaenv('r-reticulate')
+
+# Load required python packages
+# py_pack <- c('pandas', 'typing')
+# for (pack in py_pack) {
+#   if (!pack %in% reticulate::py_list_packages()$package) { 
+#     reticulate::conda_install('r-reticulate', pack) }
+# }
 
 # Point to the backend py script the performs the search/assignment
-reticulate::source_python('label_metadata.py', envir= globalenv())
+reticulate::source_python('label_metadata.py')
+cat('Pyhton source loaded. ')
 # Load the base dataset 
 qsum <- read.csv('data/quest_meta.csv')[,-1] # get rid of index variable from pandas 
 
@@ -290,5 +302,5 @@ server <- function(input, output, session) {
 ################################################################################
 # --------------------------- MAKE IT ALIVE & SHINY  ---------------------------
 ################################################################################
-
+cat('Running application: ')
 shinyApp(ui = ui, server = server)
