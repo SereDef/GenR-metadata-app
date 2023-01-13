@@ -30,11 +30,12 @@ The app requires [R](http://cran.r-project.org/) (version >= 4.0.3) and the foll
 * [shiny](http://cran.r-project.org/package=shiny) (version >= 1.6.0)
 * [reticulate](https://rstudio.github.io/reticulate/) (version >= 1.26)
 * [DT](https://cran.r-project.org/web/packages/DT/index.html) (version >= 0.26)
+* [shinyFiles](https://cran.r-project.org/web/packages/shinyFiles/index.html) (version >= 0.9.3)
 
 To launch the application, open **RStudio** (or any other R IDE), and paste the following
 command in your console (only do this if you need to install the packages I listed above):
 ```r
-install.packages(c("shiny","reticulate","DT"), dependencies = TRUE)
+install.packages(c("shiny","reticulate","DT", "shinyFiles"), dependencies = TRUE)
 ```
 Once you have the right packages, the app can be directly invoked using the command:
 ```r
@@ -44,15 +45,11 @@ This will automatically load these packages and the data overview files that are
 The argument `launch.browser = T` makes the app open in the default browser. 
 If you don't like that, simply remove the argument.
 
-Pretty soon you should see the message `Where do you want to store the output?` 
-appearing in the console. Please type or paste the path to the folder where you would 
-like to store the app output (i.e. the files you are going to send to me) and press enter. This can be any folder as long as you remember where it is :) 
-> NOTE: if you are using Windows, make sure you separate folders with `\` instead of `/`. 
+Give it a minute to thing and pretty you should see the app opening. 
+The first button you want to press is the **`Select output folder`** button on the top left. This will open a window thar you can use to navigate to the folder where you would like to store the app output (i.e. the files you are going to send to me). This can be any folder as long as you remember where it is :) 
 
-Once you entered the path, you should see a `logfile-DATE.txt` appearing in the folder you chose. 
-This is empty for now, but will be filled in as you assign metadata to variables. This is also the
-only file that I need you to return to me after you are done with your "data chunk", so don't delete it
-or your work will be lost!
+Click on select, and you should see a `logfile-DATE.txt` appearing in the folder you chose. 
+This is empty for now, but will be filled in as you assign metadata to variables. This is also the only file that I need you to return to me after you are done with your "data chunk", so don't delete it or your work will be lost!
 
 ## Optional: Python tutorial
 Note that if are handy or what to get familiar with Pyhton, the assignment can also be performed via [this notebook](https://github.com/SereDef/GenR-metadata-app/blob/main/Python%20tutorial/Quesitionnaire_metadata.ipynb) (you will need to have `pyhton`, `jupyter notebook` and a few other packages installed, see the instructions in the notebook). Please also feel free to contact me if you need help setting this up. 
