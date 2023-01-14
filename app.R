@@ -14,15 +14,15 @@ r_pack <- c('shiny', 'reticulate','DT', 'shinyFiles', 'fs') # 'tcltk'
 invisible(lapply(r_pack, require, character.only = T));
 
 # Create python virtual environment if it doesnt exist already
-if (!'r-reticulate' %in% conda_list()$name) {
-  cat('Creating new environment. ')
-  conda_create('r-reticulate')
-  py_pack <- c('pandas', 'typing')
-  for (pack in py_pack) { reticulate::conda_install('r-reticulate', pack) }
-}
-cat('Python environment all set up. ')
-# Use the enviroment 
-reticulate::use_condaenv('r-reticulate')
+# if (!'r-reticulate' %in% conda_list()$name) {
+#   cat('Creating new environment. ')
+#   conda_create('r-reticulate')
+#   py_pack <- c('pandas', 'typing')
+#   for (pack in py_pack) { reticulate::conda_install('r-reticulate', pack) }
+# }
+# cat('Python environment all set up. ')
+# # Use the enviroment 
+# reticulate::use_condaenv('r-reticulate')
 
 # Load required python packages
 # py_pack <- c('pandas', 'typing')
@@ -32,10 +32,9 @@ reticulate::use_condaenv('r-reticulate')
 # }
 
 # Point to the backend py script the performs the search/assignment
-reticulate::source_python('label_metadata.py')
-cat('Pyhton source loaded. ')
-# Load the base dataset 
-qsum <- read.csv('data/quest_meta.csv')[,-1] # get rid of index variable from pandas 
+# reticulate::source_python('label_metadata.py')
+# cat('Pyhton source loaded. ')
+source('label_metadata.R')
 
 button_style <- 'color: #0C3690; background-color: #B6CCE7; border-color: #0C3690'
 
@@ -184,15 +183,14 @@ server <- function(input, output, session) {
       dir = normalizePath(parseDirPath(volumes, input$path_out))
       
       logfile <- file.path(dir, paste0('Logfile-',Sys.Date(),'.txt'))
-      tabfile <- file.path(dir, paste0(input$gr_n, '-', Sys.Date(), ".csv")) # THAT is where emty file comes from
       
       if (!file.exists(logfile)) { file.create(logfile) }
       
-      # step 1: select the data_source value and download empty (not assigned table)
+      # step 1: select the data_source value
       grSelected <- reactive({ assign(qsum, selected = input$gr_n, based_on='data_source') })
       
       # and note it in the log file 
-      if(!is.null(input$gr_n)) { # TODO: is.null doesnt work but worry about it later 
+      if(input$gr_n!='') { # TODO: is.null doesn't work but worry about it later 
         cat(input$gr_n,'# -----------------------------------\n\n', file=logfile, append=T) }
       
       # Created sub-table based on panel input
@@ -201,7 +199,7 @@ server <- function(input, output, session) {
                                         case_sensy = input$case_sensy,
                                         sel_type = input$sel_type, 
                                         and_also = c(input$based_on2, input$selection2), 
-                                        download=F) })
+                                        download=NULL) })
       # Display table (check selected)
       output$view <- DT::renderDT({ DT::datatable(getSelection(), 
                                                   editable = 'cell',
@@ -230,38 +228,39 @@ server <- function(input, output, session) {
       ass_constructs <- eventReactive(input$assign, { input$a_constructs })
       
       # Update downloaded CSV file with assigned values 
-      observeEvent(input$assign, { assign(grSelected(), 
-                                          selected = input$selection, # verbose=True,print_labels=False
-                                          based_on = input$based_on,
-                                          case_sensy = input$case_sensy,
-                                          sel_type = input$sel_type, 
-                                          and_also = c(input$based_on2, input$selection2),
-                                          data_source = ass_data_source(),
-                                          timepoint = ass_timepoint(),
-                                          reporter = ass_reporter(),
-                                          var_label = ass_var_label(),
-                                          subject = ass_subject(),
-                                          gr_section = ass_gr_section(),
-                                          gr_qnumber = ass_gr_qnumber(),
-                                          var_comp = ass_var_comp(),
-                                          questionnaire = ass_questionnaire(),
-                                          questionnaire_ref = ass_questionnaire_ref(),
-                                          constructs = ass_constructs(), 
-                                          download = tabfile,
-                                          full_quest_download = input$gr_n) })
-      # Display assigned table 
-      output$view2 <- DT::renderDT({ DT::datatable(read.csv(tabfile)[,-1], 
-                                                   options = tab_options,
-                                                   extensions = 'Buttons',
-                                                   filter = 'top', ## include column filters at the top
-                                                   rownames = F    ## don't show row numbers/names
-      ) %>% formatStyle(names(getSelection()), backgroundColor = styleEqual(c('',NA), c('pink','red'))) })
-      
-      # Save in the log file 
-      observeEvent(input$assign, {
+      observeEvent(input$assign, { 
+        tabfile <- file.path(dir, paste0(input$gr_n, '-', Sys.Date(), ".csv")) # THAT is where empty file comes from
+        assign(grSelected(), 
+               selected = input$selection, # verbose=True,print_labels=False
+               based_on = input$based_on,
+               case_sensy = input$case_sensy,
+               sel_type = input$sel_type, 
+               and_also = c(input$based_on2, input$selection2),
+               data_source = ass_data_source(),
+               timepoint = ass_timepoint(),
+               reporter = ass_reporter(),
+               var_label = ass_var_label(),
+               subject = ass_subject(),
+               gr_section = ass_gr_section(),
+               gr_qnumber = ass_gr_qnumber(),
+               var_comp = ass_var_comp(),
+               questionnaire = ass_questionnaire(),
+               questionnaire_ref = ass_questionnaire_ref(),
+               constructs = ass_constructs(), 
+               download = tabfile,
+               full_quest_download = input$gr_n) 
+        
+        # Display assigned table 
+        output$view2 <- DT::renderDT({ DT::datatable(read.csv(tabfile)[,-1], 
+                                                     options = tab_options,
+                                                     extensions = 'Buttons',
+                                                     filter = 'top', ## include column filters at the top
+                                                     rownames = F    ## don't show row numbers/names
+        ) %>% formatStyle(names(getSelection()), backgroundColor = styleEqual(c('',NA), c('pink','red'))) })
+
+        # Save in the log file
         case_sensy_TF <- ifelse(input$case_sensy == T, 'True', 'False')
-        and_also <- ifelse(input$selection2 != '', 
-                           paste0(', and_also = ("', input$based_on2,'", "', input$selection2, '")'),'')
+        and_also <- ifelse(input$selection2 != '', paste0(', and_also = ("', input$based_on2,'", "', input$selection2, '")'),'')
         data_source <- ifelse(input$a_data_source!='',paste0(', data_source = "', input$a_data_source,'"'),'')
         timepoint <- ifelse(input$a_timepoint!='',paste0(', timepoint = "', input$a_timepoint,'"'),'')
         reporter <- ifelse(input$a_reporter!='',paste0(', reporter = "', input$a_reporter,'"'),'')
@@ -273,16 +272,16 @@ server <- function(input, output, session) {
         questionnaire <- ifelse(input$a_questionnaire!='',paste0(', questionnaire = "',input$a_questionnaire,'"'),'')
         questionnaire_ref <- ifelse(input$a_questionnaire_ref!='',paste0(', questionnaire_ref = ',input$a_questionnaire_ref,'"'),'')
         constructs <- ifelse(input$a_constructs!= '', paste0(', constructs = "', input$a_constructs,'"'),'')
-      
-      log <- paste0('assign(selected = "',input$selection,
-                    '", based_on = "', input$based_on,
-                    '", case_sensy = ', case_sensy_TF,
-                    ', sel_type = "', input$sel_type, 
-                    and_also, data_source, timepoint, reporter, var_label, subject,
-                    gr_section, gr_qnumber, var_comp, questionnaire, questionnaire_ref,
-                    constructs,')','\n# ',nrow(getSelection()))
-      
-      cat(log, file=logfile, sep ='\n\n\n', append=T) })
+
+        log <- paste0('assign(selected = "',input$selection,
+                      '", based_on = "', input$based_on,
+                      '", case_sensy = ', case_sensy_TF,
+                      ', sel_type = "', input$sel_type,'"',
+                      and_also, data_source, timepoint, reporter, var_label, subject,
+                      gr_section, gr_qnumber, var_comp, questionnaire, questionnaire_ref,
+                      constructs,')','\n# ',nrow(getSelection()))
+        cat(log, file=logfile, sep ='\n\n\n', append=T)
+        })
     }
   })
 } # end server  
