@@ -2,13 +2,6 @@
 # This is still very much work in progress so please if you have any suggestions 
 # or you want to help shoot me an email at s.defina@erasmusmc.nl
 
-# Prompt window to select output directory
-#dir <- readline('Where do you want to store the output? ')
-# while input is not provided keep asking
-# while(!file.exists(dir)){
-#   dir <- readline('Where do you want to store the output? ')
-# }
-
 # Load required r packages
 r_pack <- c('shiny', 'reticulate','DT', 'shinyFiles', 'fs') # 'tcltk'
 invisible(lapply(r_pack, require, character.only = T));
@@ -56,8 +49,8 @@ ui <- fluidPage(
       fluidRow(
         column(4, 
                fluidRow(style = "width:350px", h3('Selection pane'),
-               column(6, shinyDirButton('path_out', 'Select output folder', 
-                                        title='Please select a folder when you want to store output', 
+               column(6, shinyFilesButton('path_out', 'Load dataset', multiple = F,
+                                        title='Please select input file', 
                                         style = paste('margin-top: 25px;', button_style))),
                column(6, selectInput('gr_n', label = 'Select data source:', 
                            choices=list('','GR1001'='GR1001','GR1002'='GR1002','GR1003'='GR1003',
@@ -159,7 +152,7 @@ ui <- fluidPage(
 
 server <- function(input, output, session) {
   volumes <- c(Home = fs::path_home(), "R Installation" = R.home(), getVolumes()())
-  shinyDirChoose(input, 'path_out', roots = volumes, session = session)
+  shinyFileChoose(input, 'path_out', roots = volumes, session = session)
   
   # Display options 
   tab_options <- list(paging = F,    ## paginate the output
@@ -179,31 +172,39 @@ server <- function(input, output, session) {
                                "}"))))
   
   observe({ # wrap in choice of folder location for storage 
-    if (!identical(parseDirPath(volumes, input$path_out), character(0))){
-      dir = normalizePath(parseDirPath(volumes, input$path_out))
+    parseit = parseFilePaths(volumes, input$path_out)
+    infile = as.character(parseit$datapath)
+
+    if (!identical(infile, character(0))){
+      dir = dirname(infile)
       
       logfile <- file.path(dir, paste0('Logfile-',Sys.Date(),'.txt'))
       
       if (!file.exists(logfile)) { file.create(logfile) }
       
-      # step 1: select the data_source value
-      grSelected <- reactive({ assign(qsum, selected = input$gr_n, based_on='data_source') })
+      outfile <- infile # to avoid error while you wait for gr_n input  this is first the file input
       
-      # and note it in the log file 
-      if(input$gr_n!='') { # TODO: is.null doesn't work but worry about it later 
-        cat(input$gr_n,'# -----------------------------------\n\n', file=logfile, append=T) }
+      if (basename(infile)=='quest_meta.csv' & input$gr_n!='') {
+          # create sub-file GR-number if it doesn't exist
+          assign(infile, selected = input$gr_n, based_on='data_source', download=input$gr_n) 
+          # and note it in the log file 
+          cat(input$gr_n,'# -----------------------------------\n\n', file=logfile, append=T)
+          # update outfile to the file just created 
+          outfile <- file.path(dir, paste0(input$gr_n,'.csv'))
+      } else {
+        cat(basename(infile),'# -----------------------------------\n\n', file=logfile, append=T)
+      }
       
       # Created sub-table based on panel input
-      getSelection <- reactive({ assign(grSelected(), selected = input$selection,
-                                        based_on = input$based_on,
-                                        case_sensy = input$case_sensy,
-                                        sel_type = input$sel_type, 
-                                        and_also = c(input$based_on2, input$selection2), 
-                                        download=NULL) })
+      getSelection <- reactive({ assign(outfile,
+                                       selected = input$selection,
+                                       based_on = input$based_on,
+                                       case_sensy = input$case_sensy,
+                                       sel_type = input$sel_type, 
+                                       and_also = c(input$based_on2, input$selection2), 
+                                       download=NULL) })
       # Display table (check selected)
-      output$view <- DT::renderDT({ DT::datatable(getSelection(), 
-                                                  editable = 'cell',
-                                                  options = tab_options,
+      output$view <- DT::renderDT({ DT::datatable(getSelection(), editable = 'cell', options = tab_options,
                                                   extensions = 'Buttons',
                                                   filter = 'top', ## include column filters at the top
                                                   rownames = F    ## don't show row numbers/names
@@ -212,7 +213,7 @@ server <- function(input, output, session) {
       # Overview information 
       output$n_selected   <- renderText({ ifelse(is.null(nrow(getSelection())),'0',nrow(getSelection())) }) # number of rows
       output$n_generated  <- renderText({ paste0(list_numbers(start=input$fromn, end=input$ton),', ') })
-      output$rows_selected <- renderText({grSelected()[input$view_rows_selected, 'var_name']})
+      output$rows_selected <- renderText({getSelection()[input$view_rows_selected, 'var_name']})
       
       # Upon clicking "assign"
       ass_data_source <- eventReactive(input$assign,{ unlist(strsplit(input$a_data_source,', ')) })
@@ -229,8 +230,7 @@ server <- function(input, output, session) {
       
       # Update downloaded CSV file with assigned values 
       observeEvent(input$assign, { 
-        tabfile <- file.path(dir, paste0(input$gr_n, '-', Sys.Date(), ".csv")) # THAT is where empty file comes from
-        assign(grSelected(), 
+        assign(outfile, 
                selected = input$selection, # verbose=True,print_labels=False
                based_on = input$based_on,
                case_sensy = input$case_sensy,
@@ -247,11 +247,10 @@ server <- function(input, output, session) {
                questionnaire = ass_questionnaire(),
                questionnaire_ref = ass_questionnaire_ref(),
                constructs = ass_constructs(), 
-               download = tabfile,
-               full_quest_download = input$gr_n) 
+               download = basename(outfile)) 
         
         # Display assigned table 
-        output$view2 <- DT::renderDT({ DT::datatable(read.csv(tabfile)[,-1], 
+        output$view2 <- DT::renderDT({ DT::datatable(read.csv(outfile)[,-1], 
                                                      options = tab_options,
                                                      extensions = 'Buttons',
                                                      filter = 'top', ## include column filters at the top
@@ -282,7 +281,7 @@ server <- function(input, output, session) {
                       constructs,')','\n# ',nrow(getSelection()))
         cat(log, file=logfile, sep ='\n\n\n', append=T)
         })
-    }
+     }
   })
 } # end server  
 

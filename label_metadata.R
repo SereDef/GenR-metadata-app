@@ -1,5 +1,5 @@
 # Load the base dataset 
-qsum <- read.csv('data/quest_meta.csv')[,-1] # get rid of index variable from pandas 
+#qsum <- read.csv('data/quest_meta.csv')[,-1] # get rid of index variable from pandas 
 
 # Specify some basic data info
 GR_ids = data.frame(
@@ -37,13 +37,13 @@ GR_ids = data.frame(
   'GR1097'= c('13 y', 'mother',13.54))# ? about ENT specialist visit ?
 
 # Construct the main assignment funtion. It takes only one obligatory argument: selected.
-assign <- function(q, selected, # string or list 
+assign <- function(q_path, selected, # string or list 
                    based_on='var_name',
                    case_sensy=F,
                    sel_type='contains',  # 'ends', 'starts', 'is'
                    and_also=NULL,
                    print_labels=F,
-                   download=NULL, full_quest_download=NULL,
+                   download=NULL,
                    # assignment arguments
                    data_source=NULL,
                    timepoint=NULL,
@@ -56,6 +56,10 @@ assign <- function(q, selected, # string or list
                    questionnaire=NULL,
                    questionnaire_ref=NULL,
                    constructs=NULL) {
+  
+  q <- read.csv(q_path)[,-1] # get rid of index variable from pandas 
+  #print(head(q))
+  
   # SELECTION --------------------------------------------------
   if (!based_on %in% names(q)) { 
     stop('There is no column called \"', based_on, '\"') # Note: useless here since i pre-specify options 
@@ -174,10 +178,10 @@ assign <- function(q, selected, # string or list
     
     # Download the assigned file ---------------------------------------------
     if (!is.null(download)) {
-       if (!is.null(full_quest_download)) {
-          fullshow = q[grep(full_quest_download, q$data_source),]
-          write.csv(fullshow, download)
-       } # else { write.csv(q[sel,], download) }
+      if (basename(q_path)=='quest_meta.csv') {
+        sel_gr <- q[grep(download, q$data_source),]
+        write.csv(sel_gr, file.path(dirname(q_path), paste0(download, '.csv')))
+      } else { write.csv(q, q_path) }
     }
     return (q[sel,])
   } 
